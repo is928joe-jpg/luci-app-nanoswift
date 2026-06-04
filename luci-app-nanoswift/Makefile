@@ -4,6 +4,8 @@ PKG_NAME:=luci-app-nanoswift
 PKG_VERSION:=1.0.0
 PKG_RELEASE:=1
 
+PKGARCH:=$(ARCH_PACKAGES)
+
 include $(INCLUDE_DIR)/package.mk
 
 define Package/luci-app-nanoswift

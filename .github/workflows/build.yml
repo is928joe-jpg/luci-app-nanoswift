@@ -90,37 +90,7 @@ jobs:
 
             cd "$SDK_DIR"
 
-            echo "=== Fixing feeds ==="
-            sed -i '/src-git luci /d' feeds.conf.default
-            sed -i '/src-git packages /d' feeds.conf.default
-
-            BRANCH=$(grep -oP 'openwrt-sdk-\K[0-9]+\.[0-9]+' <<< "$SDK_DIR")
-            if [ "$BRANCH" = "23.05" ]; then
-              FEED_BRANCH="openwrt-23.05"
-            else
-              FEED_BRANCH="openwrt-25.05"
-            fi
-
-            echo "src-git luci https://github.com/openwrt/luci.git;$FEED_BRANCH" >> feeds.conf.default
-            echo "src-git packages https://github.com/openwrt/packages.git;$FEED_BRANCH" >> feeds.conf.default
-
-            retry() {
-              local n=0
-              local try=5
-              until [ $n -ge $try ]; do
-                "$@" && break
-                n=$((n+1))
-                echo "Retry $n/$try..."
-                sleep 3
-              done
-              [ $n -lt $try ]
-            }
-
-            echo "=== Updating feeds with retry ==="
-            retry ./scripts/feeds update luci -f --depth=1 || { echo "FATAL: luci feed failed"; exit 1; }
-            retry ./scripts/feeds update packages -f --depth=1 || { echo "FATAL: packages feed failed"; exit 1; }
-
-            ./scripts/feeds install -a
+            echo "=== [23.05] Skip feeds (no LuCI needed) ==="
 
             touch .config
             make defconfig 2>/dev/null
