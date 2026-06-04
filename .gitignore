@@ -3,6 +3,7 @@ cmd.txt
 *.backup
 sdk_list_full.json
 setup-git-ssh.sh
+2Make.sh
 
 # 编译产物
 *.o

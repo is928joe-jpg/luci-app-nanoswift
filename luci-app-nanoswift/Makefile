@@ -19,11 +19,11 @@ define Package/luci-app-nanoswift/description
 endef
 
 define Package/luci-app-nanoswift/postinst
-	#!/bin/sh
-	[ -n "$$$$IPKG_INSTROOT" ] || /usr/bin/srs
-    [ -n "$$$$IPKG_INSTROOT" ] || /etc/init.d/sing-box enable 2>/dev/null || true
-    echo "opkg install luci-app-nanowift finished!"
-	exit 0
+#!/bin/sh
+[ -n "$$IPKG_INSTROOT" ] || /usr/bin/srs || true
+[ -n "$$IPKG_INSTROOT" ] || /etc/init.d/sing-box enable 2>/dev/null || true
+printf "%s\n" "opkg install luci-app-nanoswift finished!"
+exit 0
 endef
 
 define Build/Prepare
