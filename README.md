@@ -47,29 +47,31 @@ LuCI → 服务 → NanoSwift
 ## 📸 界面预览
 
 <p align="center">
-  <img src=https://github.com/is928joe-jpg/luci-app-nanoswift/blob/main/images/1.png" width="45%" alt="服务设定" />
-  <img src=https://github.com/is928joe-jpg/luci-app-nanoswift/blob/main/images/2.png" width="45%" alt="CFNAT 设置" />
+  <img src="https://github.com/is928joe-jpg/luci-app-nanoswift/blob/main/images/1.png?raw=true" width="45%" alt="服务设定" />
+  <img src="https://github.com/is928joe-jpg/luci-app-nanoswift/blob/main/images/2.png?raw=true" width="45%" alt="CFNAT 设置" />
 </p>
 
 <p align="center">
-  <b>左：服务设定与 API 状态、Cloudflare 优选 IP（CFNAT） | 右：多协议订阅转换</b>
+  <b>📌 左：服务设定与 API 状态、Cloudflare 优选 IP（CFNAT）</b><br>
+  <b>📌 右：多协议订阅转换</b>
 </p>
 
 <p align="center">
-  <img src=https://github.com/is928joe-jpg/luci-app-nanoswift/blob/main/images/3.png" width="45%" alt="订阅管理" />
-  <img src=https://github.com/is928joe-jpg/luci-app-nanoswift/blob/main/images/4.png" width="45%" alt="节点组管理" />
+  <img src="https://github.com/is928joe-jpg/luci-app-nanoswift/blob/main/images/3.png?raw=true" width="45%" alt="订阅管理" />
+  <img src="https://github.com/is928joe-jpg/luci-app-nanoswift/blob/main/images/4.png?raw=true" width="45%" alt="节点组管理" />
 </p>
 
 <p align="center">
-  <b>左：扁平化组管理、规则管理、拖拽式分流绑定（支持排序与自动合并） | 右：可视化 Clash Yacd 节点管理</b>
+  <b>📌 左：扁平化组管理、规则管理、拖拽式分流绑定（支持排序与自动合并）</b><br>
+  <b>📌 右：可视化 Clash Yacd 节点管理</b>
 </p>
 
 <p align="center">
-  <img src=https://github.com/is928joe-jpg/luci-app-nanoswift/blob/main/images/5.png" width="91%" alt="规则绑定" />
+  <img src="https://github.com/is928joe-jpg/luci-app-nanoswift/blob/main/images/5.png?raw=true" width="80%" alt="规则绑定" />
 </p>
 
 <p align="center">
-  <b>极低资源占用</b>
+  <b>⚡ 规则绑定界面 —— 极低资源占用</b>
 </p>
 
 ---
