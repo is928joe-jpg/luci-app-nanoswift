@@ -19,7 +19,6 @@ jobs:
 
       - id: set-matrix
         run: |
-          # 按版本分组并排序
           SDK_23=$(jq -c '[.[] | select(.url | contains("23.05"))] | sort_by(.name)' sdk_list.json)
           SDK_25=$(jq -c '[.[] | select(.url | contains("25."))] | sort_by(.name)' sdk_list.json)
 
@@ -28,9 +27,6 @@ jobs:
 
           echo "matrix_23=$MATRIX_23" >> $GITHUB_OUTPUT
           echo "matrix_25=$MATRIX_25" >> $GITHUB_OUTPUT
-
-          echo "23.05 targets: $(echo "$SDK_23" | jq length)"
-          echo "25.xx targets: $(echo "$SDK_25" | jq length)"
 
   build-23:
     needs: prepare
@@ -71,11 +67,8 @@ jobs:
             mkdir -p "$CACHE_DIR"
             SDK_TAR="$CACHE_DIR/sdk.tar.xz"
 
-            if [ -f "$SDK_TAR" ]; then
-              echo "[CACHE HIT] $NAME"
-            else
-              echo "[CACHE MISS] $NAME"
-              wget -q "$URL" -O "$SDK_TAR.tmp" || { echo "[FAIL] $NAME - download error"; continue; }
+            if [ ! -f "$SDK_TAR" ]; then
+              wget -q "$URL" -O "$SDK_TAR.tmp" || continue
               mv "$SDK_TAR.tmp" "$SDK_TAR"
             fi
 
@@ -90,15 +83,14 @@ jobs:
 
             cd "$SDK_DIR"
 
-            echo "=== [23.05] Skip feeds (no LuCI needed) ==="
+            echo "=== [23.05] Skip feeds ==="
 
             touch .config
-            make defconfig 2>/dev/null
+            make defconfig
 
-            make package/$PKG_NAME/compile -j$(nproc) V=s ARCH_NAME="$NAME" 2>&1 | tail -5
+            make package/$PKG_NAME/compile -j$(nproc) V=s ARCH_NAME="$NAME"
 
             find bin/packages -name "${PKG_NAME}*.ipk" -exec cp {} "$WORKSPACE/output/" \;
-            find bin/packages -name "${PKG_NAME}*.apk" -exec cp {} "$WORKSPACE/output/" \;
 
             cd "$WORKSPACE"
             rm -rf "$TMP_DIR"
@@ -111,9 +103,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ipks-23-shard-${{ strategy.job-index }}
-          path: |
-            output/*.ipk
-            output/*.apk
+          path: output/*.ipk
 
   build-25:
     needs: prepare
@@ -154,11 +144,8 @@ jobs:
             mkdir -p "$CACHE_DIR"
             SDK_TAR="$CACHE_DIR/sdk.tar.zst"
 
-            if [ -f "$SDK_TAR" ]; then
-              echo "[CACHE HIT] $NAME"
-            else
-              echo "[CACHE MISS] $NAME"
-              wget -q "$URL" -O "$SDK_TAR.tmp" || { echo "[FAIL] $NAME - download error"; continue; }
+            if [ ! -f "$SDK_TAR" ]; then
+              wget -q "$URL" -O "$SDK_TAR.tmp" || continue
               mv "$SDK_TAR.tmp" "$SDK_TAR"
             fi
 
@@ -175,15 +162,22 @@ jobs:
 
             cd "$SDK_DIR"
 
-            echo "=== [25.xx] Skip feeds (LuCI removed in 25.x) ==="
+            echo "=== [25.xx] Skip feeds ==="
 
             touch .config
-            make defconfig 2>/dev/null
+            make defconfig
 
-            make package/$PKG_NAME/compile -j$(nproc) V=s ARCH_NAME="$NAME" 2>&1 | tail -5
+            make package/$PKG_NAME/compile -j$(nproc) V=s ARCH_NAME="$NAME"
 
-            find bin/packages -name "${PKG_NAME}*.ipk" -exec cp {} "$WORKSPACE/output/" \;
-            find bin/packages -name "${PKG_NAME}*.apk" -exec cp {} "$WORKSPACE/output/" \;
+            # 25.xx APK：手动按架构重命名，避免互相覆盖
+            find bin/packages -name "${PKG_NAME}*.apk" -exec sh -c '
+              src="$1"
+              arch="$2"
+              work="$3"
+              base="$(basename "$src")"
+              new="${base%.apk}_${arch}.apk"
+              cp "$src" "$work/output/$new"
+            ' _ {} "$NAME" "$WORKSPACE" \;
 
             cd "$WORKSPACE"
             rm -rf "$TMP_DIR"
@@ -196,9 +190,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ipks-25-shard-${{ strategy.job-index }}
-          path: |
-            output/*.ipk
-            output/*.apk
+          path: output/*.apk
 
   release:
     needs: [build-23, build-25]
