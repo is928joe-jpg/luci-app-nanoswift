@@ -47,8 +47,8 @@ LuCI → 服务 → NanoSwift
 ## 📸 界面预览
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/is928joe-jpg/luci-app-nanoswift/refs/heads/master/images/1.png" width="45%" alt="服务设定" />
-  <img src="https://raw.githubusercontent.com/is928joe-jpg/luci-app-nanoswift/refs/heads/master/images/2.png" width="45%" alt="CFNAT 设置" />
+  <img src=https://github.com/is928joe-jpg/luci-app-nanoswift/blob/main/images/1.png" width="45%" alt="服务设定" />
+  <img src=https://github.com/is928joe-jpg/luci-app-nanoswift/blob/main/images/2.png" width="45%" alt="CFNAT 设置" />
 </p>
 
 <p align="center">
@@ -56,8 +56,8 @@ LuCI → 服务 → NanoSwift
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/is928joe-jpg/luci-app-nanoswift/refs/heads/master/images/3.png" width="45%" alt="订阅管理" />
-  <img src="https://raw.githubusercontent.com/is928joe-jpg/luci-app-nanoswift/refs/heads/master/images/4.png" width="45%" alt="节点组管理" />
+  <img src=https://github.com/is928joe-jpg/luci-app-nanoswift/blob/main/images/3.png" width="45%" alt="订阅管理" />
+  <img src=https://github.com/is928joe-jpg/luci-app-nanoswift/blob/main/images/4.png" width="45%" alt="节点组管理" />
 </p>
 
 <p align="center">
@@ -65,7 +65,7 @@ LuCI → 服务 → NanoSwift
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/is928joe-jpg/luci-app-nanoswift/refs/heads/master/images/5.png" width="91%" alt="规则绑定" />
+  <img src=https://github.com/is928joe-jpg/luci-app-nanoswift/blob/main/images/5.png" width="91%" alt="规则绑定" />
 </p>
 
 <p align="center">

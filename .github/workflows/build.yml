@@ -19,7 +19,7 @@ jobs:
       - id: set-matrix
         run: |
           MATRIX=$(jq -c '
-            [range(0; length; 15) as $i | .[$i:$i+15]]
+            [range(0; length; 8) as $i | .[$i:$i+8]]
           ' sdk_list.json)
 
           echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
@@ -89,13 +89,6 @@ jobs:
 
             echo "src-git luci https://github.com/openwrt/luci.git;openwrt-23.05" >> feeds.conf.default
             echo "src-git packages https://github.com/openwrt/packages.git;openwrt-23.05" >> feeds.conf.default
-
-            if ! grep -q "^src-git luci " feeds.conf.default 2>/dev/null; then
-              echo "src-git luci https://github.com/openwrt/luci.git;openwrt-23.05" >> feeds.conf.default
-            fi
-            if ! grep -q "^src-git packages " feeds.conf.default 2>/dev/null; then
-              echo "src-git packages https://github.com/openwrt/packages.git;openwrt-23.05" >> feeds.conf.default
-            fi            
 
             retry() {
               local n=0
