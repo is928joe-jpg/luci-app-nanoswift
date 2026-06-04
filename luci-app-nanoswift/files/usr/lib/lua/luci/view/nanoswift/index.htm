@@ -1,0 +1,2062 @@
+<%+header%>
+
+<style>
+    /* ==========================================================================
+       Light 模式 (默认)
+       ========================================================================== */
+    :root,
+    [data-theme="light"] {
+        --ns-bg: #ffffff;
+        --ns-bg-secondary: #f8f9fa;
+        --ns-bg-tertiary: #f0f2f5;
+        --ns-border: #dee2e6;
+        --ns-border-light: #e9ecef;
+        --ns-text: #333333;
+        --ns-text-light: #666666;
+        --ns-input-bg: #ffffff;
+        --ns-tag-bg: #f0f0f0;
+        --ns-tag-hover: #e0e0e0;
+        --ns-table-header: #f5f5f5;
+        --ns-modal-overlay: rgba(0, 0, 0, 0.3);
+        --ns-shadow: 0 0 0.5rem 0 rgba(0, 0, 0, 0.08);
+    }
+
+    /* ==========================================================================
+       Dark 模式
+       ========================================================================== */
+    [data-theme="dark"] {
+        --ns-bg: #1e1e1e;
+        --ns-bg-secondary: #333333;
+        --ns-bg-tertiary: #252526;
+        --ns-border: #3c3c3c;
+        --ns-border-light: #252526;
+        --ns-text: #cccccc;
+        --ns-text-light: #999999;
+        --ns-input-bg: transparent;
+        --ns-tag-bg: #2d2d30;
+        --ns-tag-hover: #3d3d40;
+        --ns-table-header: #252526;
+        --ns-modal-overlay: rgba(0, 0, 0, 0.5);
+        --ns-shadow: 0 0 0.5rem 0 rgba(0, 0, 0, 0.35);
+    }
+
+    [data-theme="dark"] .ns-section input::placeholder,
+    [data-theme="dark"] .ns-section textarea::placeholder,
+    [data-theme="dark"] .modal-body input::placeholder,
+    [data-theme="dark"] .modal-body textarea::placeholder {
+        color: #666666 !important;
+        opacity: 1 !important;
+    }
+
+    [data-theme="dark"] .ns-section input::-webkit-input-placeholder,
+    [data-theme="dark"] .ns-section textarea::-webkit-input-placeholder,
+    [data-theme="dark"] .modal-body input::-webkit-input-placeholder,
+    [data-theme="dark"] .modal-body textarea::-webkit-input-placeholder {
+        color: #666666 !important;
+    }
+
+    [data-theme="dark"] .ns-section input::-moz-placeholder,
+    [data-theme="dark"] .ns-section textarea::-moz-placeholder,
+    [data-theme="dark"] .modal-body input::-moz-placeholder,
+    [data-theme="dark"] .modal-body textarea::-moz-placeholder {
+        color: #666666 !important;
+        opacity: 1 !important;
+    }
+
+    [data-theme="dark"] .ns-section input:-ms-input-placeholder,
+    [data-theme="dark"] .ns-section textarea:-ms-input-placeholder,
+    [data-theme="dark"] .modal-body input:-ms-input-placeholder,
+    [data-theme="dark"] .modal-body textarea:-ms-input-placeholder {
+        color: #666666 !important;
+    }
+
+    [data-theme="dark"] .tag-btn.match-highlight {
+        border: 2px solid #5e72e4 !important;
+        background: #2a3a6e !important;
+        color: #aac8ff !important;
+    }
+
+    [data-theme="dark"] .tag-btn.match-selected {
+        background: #28a745 !important;
+        color: #fff !important;
+        border-color: #1e7e34 !important;
+        box-shadow: 0 0 4px rgba(40, 167, 69, 0.5);
+    }
+
+    [data-theme="dark"] .tag-btn.match-none {
+        opacity: 0.35;
+    }
+
+    /* 公共变量 */
+    :root {
+        --ns-primary: #5e72e4;
+        --ns-primary-dark: #483d8b;
+    }
+
+    /* ==========================================================================
+       布局样式
+       ========================================================================== */
+    .ns-section {
+        background: var(--ns-bg) !important;
+        border: none !important;
+        padding: 20px;
+        margin-bottom: 25px;
+        border-radius: 6px;
+        box-shadow: var(--ns-shadow);
+    }
+
+    .service-settings {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        margin-bottom: 15px;
+        padding: 15px;
+        background: transparent !important;
+        border-radius: 4px;
+        border: none !important;
+    }
+
+    .setting-row {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        flex-wrap: wrap;
+        min-height: 32px;
+    }
+
+    .path-input {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+    }
+
+    .path-input label {
+        margin: 0;
+        font-weight: normal;
+        color: var(--ns-text) !important;
+        min-width: fit-content;
+    }
+
+    .checkbox-label {
+        display: inline-flex !important;
+        align-items: center;
+        gap: 8px;
+        font-weight: normal;
+        cursor: pointer;
+        white-space: nowrap;
+        margin: 0;
+        color: var(--ns-text) !important;
+    }
+
+    .checkbox-label span {
+        color: var(--ns-text) !important;
+    }
+
+    .ns-title {
+        font-size: 1.2em;
+        font-weight: bold;
+        margin-bottom: 15px;
+        color: var(--ns-text) !important;
+        border-bottom: 2px solid var(--ns-primary-dark);
+        padding-bottom: 8px;
+    }
+
+    .sub-field {
+        margin-bottom: 20px;
+    }
+
+    .sub-field label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 8px;
+        color: var(--ns-text) !important;
+    }
+
+    .ns-section input[type="text"],
+    .ns-section input[type="number"],
+    .ns-section textarea {
+        background: var(--ns-input-bg) !important;
+        border: 1px solid var(--ns-border) !important;
+        color: var(--ns-text) !important;
+        padding: 4px 8px;
+        box-sizing: border-box;
+        height: 28px;
+        line-height: 20px;
+        border-radius: 4px;
+    }
+
+    .ns-section textarea {
+        width: 100%;
+        height: auto;
+        padding: 12px;
+        resize: vertical;
+        font-family: monospace;
+    }
+
+    .ns-section input[type="text"]:focus,
+    .ns-section input[type="number"]:focus,
+    .ns-section textarea:focus {
+        border-color: var(--ns-primary) !important;
+        outline: none;
+    }
+
+    .ns-section select {
+        height: 28px;
+        background: var(--ns-input-bg) !important;
+        border: 1px solid var(--ns-border) !important;
+        color: var(--ns-text) !important;
+        box-shadow: none !important;
+        padding: 0 4px;
+        border-radius: 4px;
+    }
+
+    .ns-section select:focus {
+        border-color: var(--ns-primary) !important;
+        outline: none;
+    }
+
+    .ns-section select option {
+        background: var(--ns-bg) !important;
+        color: var(--ns-text) !important;
+    }
+
+    .checkbox-label input[type="checkbox"] {
+        display: inline-block !important;
+        appearance: checkbox !important;
+        -webkit-appearance: checkbox !important;
+        width: 18px;
+        height: 18px;
+        margin: 0;
+        padding: 0;
+        cursor: pointer;
+        background-color: var(--ns-input-bg) !important;
+        border: 1px solid var(--ns-border) !important;
+        accent-color: var(--ns-primary-dark) !important;
+        flex-shrink: 0;
+        vertical-align: middle;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+
+    table th, table td {
+        padding: 10px;
+        text-align: left;
+        border: none;
+        border-top: 1px solid var(--ns-border-light);
+        color: var(--ns-text) !important;
+    }
+
+    table th {
+        background: var(--ns-table-header) !important;
+        color: var(--ns-text) !important;
+        font-weight: bold;
+        border-bottom: 1px solid #000 !important;
+    }
+
+    table td {
+        background: var(--ns-bg) !important;
+    }
+
+    table tbody tr:nth-of-type(2n) td {
+        background: var(--ns-bg-tertiary) !important;
+    }
+
+    .action-btn {
+        padding: 8px 8px;
+        min-width: 180px;
+        height: 36px;
+        margin: 5px;
+    }
+
+    button:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 30000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: transparent;
+    }
+
+    .modal-content {
+        background: var(--ns-bg) !important;
+        border: 1px solid var(--ns-border);
+        position: fixed;
+        right: 0;
+        top: 0;
+        width: 40%;
+        min-width: 400px;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: -5px 0 15px rgba(0, 0, 0, 0.25);
+        color: var(--ns-text);
+    }
+
+    .modal-header {
+        padding: 15px 20px;
+        font-size: 1.2em;
+        font-weight: bold;
+        border-bottom: 1px solid var(--ns-border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: var(--ns-text);
+        background: var(--ns-bg-secondary);
+    }
+
+    .modal-body {
+        padding: 20px;
+        overflow-y: auto;
+        flex: 1;
+        color: var(--ns-text);
+    }
+
+    .modal-body label {
+        display: block;
+        color: var(--ns-text);
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+
+    .modal-body input, .modal-body select {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    .modal-footer {
+        padding: 15px 20px;
+        background: var(--ns-bg-secondary);
+        border-top: 1px solid var(--ns-border);
+        display: flex;
+        gap: 12px;
+    }
+
+    .close-btn {
+        cursor: pointer;
+        font-size: 28px;
+        color: var(--ns-text-light);
+        line-height: 1;
+    }
+
+    .close-btn:hover {
+        color: var(--ns-text);
+    }
+
+    .tag-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        border: 1px solid var(--ns-border);
+        padding: 12px;
+        background: var(--ns-bg-secondary) !important;
+        border-radius: 4px;
+        margin-top: 8px;
+        min-height: 40px;
+    }
+
+    .tag-btn {
+        background: var(--ns-tag-bg) !important;
+        border: 1px solid var(--ns-border);
+        padding: 4px 10px;
+        border-radius: 3px;
+        cursor: pointer;
+        font-size: 12px;
+        color: var(--ns-text);
+        transition: all 0.2s;
+        user-select: none;
+    }
+
+    .tag-btn:hover {
+        background: var(--ns-tag-hover) !important;
+        border-color: var(--ns-primary-dark);
+    }
+
+    .tag-btn.active {
+        background: var(--ns-primary-dark) !important;
+        color: #fff !important;
+        border-color: var(--ns-primary-dark) !important;
+    }
+
+    .tag-btn {
+        background: var(--ns-tag-bg) !important;
+        border: 1px solid var(--ns-border);
+        padding: 4px 10px;
+        border-radius: 3px;
+        cursor: pointer;
+        font-size: 12px;
+        color: var(--ns-text);
+        transition: all 0.2s;
+        user-select: none;
+    }
+
+    .tag-btn:hover {
+        background: var(--ns-tag-hover) !important;
+        border-color: var(--ns-primary-dark);
+    }
+
+    .tag-btn.active {
+        background: var(--ns-primary-dark) !important;
+        color: #fff !important;
+        border-color: var(--ns-primary-dark) !important;
+    }
+
+    .tag-btn.match-highlight {
+        border: 2px solid #5e72e4 !important;
+        background: #e8f0fe !important;
+        color: #333 !important;
+    }
+
+    .tag-btn.match-selected {
+        background: #28a745 !important;
+        color: #fff !important;
+        border-color: #1e7e34 !important;
+        box-shadow: 0 0 4px rgba(40, 167, 69, 0.5);
+    }
+
+    .tag-btn.match-none {
+        opacity: 0.45;
+    }
+
+    .search-bar {
+        background: var(--ns-input-bg) !important;
+        border: 1px solid var(--ns-border) !important;
+        color: var(--ns-text);
+        width: 100%;
+        height: 28px;
+        padding: 0 8px;
+        box-sizing: border-box;
+        margin-bottom: 8px;
+        border-radius: 4px;
+    }
+
+    .search-bar:focus {
+        border-color: var(--ns-primary-dark) !important;
+        outline: none;
+    }
+
+    .proxy-list {
+        border: 1px solid var(--ns-border);
+        border-radius: 4px;
+        max-height: 60vh;
+        overflow-y: auto;
+        background: var(--ns-bg-secondary) !important;
+    }
+
+    .proxy-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--ns-border-light);
+        color: var(--ns-text);
+    }
+
+    .proxy-item:hover {
+        background: var(--ns-tag-bg) !important;
+    }
+
+    .field-hint {
+        font-size: 12px;
+        color: var(--ns-text-light);
+        margin-top: -8px;
+        margin-bottom: 10px;
+    }
+
+    hr {
+        border: none;
+        border-top: 1px solid var(--ns-border);
+        margin: 15px 0;
+    }
+
+    .ns-section:last-child {
+        background: var(--ns-bg-secondary) !important;
+    }
+
+    #node-management-link {
+        color: var(--ns-primary) !important;
+    }
+
+    #node-management-link:hover {
+        text-decoration: underline !important;
+    }
+
+    /* ==========================================================================
+       拖动排序样式
+       ========================================================================== */
+    .dragging {
+        opacity: 0.5;
+        cursor: move;
+    }
+
+    .drag-handle {
+        cursor: move;
+        user-select: none;
+        padding: 0 5px;
+        color: var(--ns-text-light);
+    }
+
+    .drag-handle:hover {
+        color: var(--ns-primary);
+    }
+
+    #rule-table tbody tr {
+        cursor: default;
+        transition: background-color 0.2s;
+    }
+
+    #rule-table tbody tr.drag-over {
+        border-top: 2px solid var(--ns-primary);
+    }
+
+    /* ==========================================================================
+       备份恢复样式
+       ========================================================================== */
+    .backup-row {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    #restore-file {
+        color: var(--ns-text);
+        height: 40px;
+        line-height: 18px;
+    }
+
+    #restore-form {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+</style>
+
+<div id="nanoswift-app">
+    <!-- ==================== 服务设定 ==================== -->
+    <div class="ns-section">
+        <div class="ns-title" style="display: flex; justify-content: space-between; align-items: center;">
+            <span>服务设定</span>
+            <span style="display: flex; align-items: center; gap: 20px;">
+                <span id="clash-api-status" style="font-size: 14px; font-weight: normal;"></span>
+            </span>
+        </div>
+        <div class="service-settings">
+            <div class="setting-row">
+                <div class="checkbox-label">
+                    <input id="service-enabled" onchange="saveServiceSettings()" type="checkbox">
+                    <span>开机自启服务:</span>
+                </div>
+                <div class="path-input">
+                    <label>延时(秒):</label>
+                    <input id="service-delay" min="0" onchange="saveServiceSettings()" style="width:60px;" type="number">
+                </div>
+                <div class="path-input">
+                    <label>mixed 端口:</label>
+                    <input id="mixed-port" max="65535" min="1" onchange="saveServiceSettings()" style="width:80px;" type="number">
+                </div>                
+                <div class="path-input">
+                    <label>Clash API 密钥:</label>
+                    <input id="clash-secret" onchange="saveServiceSettings(); updateNodeManagementLink();" style="width:150px;" type="text">
+                </div>
+                <div class="path-input">
+                    <label>Clash API 端口:</label>
+                    <input id="clash-port" max="65535" min="1" onchange="saveServiceSettings(); updateNodeManagementLink();" style="width:80px;" type="number">
+                </div>
+            </div>
+            <div class="setting-row">
+                <div class="path-input">
+                    <label>Sing-Box 执行文件路径:</label>
+                    <input id="singbox-bin" onchange="saveServiceSettings()" style="width:250px;" type="text">
+                </div>
+                <div class="path-input">
+                    <label>工作目录:</label>
+                    <input id="singbox-workdir" onchange="saveServiceSettings()" style="width:250px;" type="text">
+                </div>
+            </div>
+            <div class="setting-row">
+                <div class="checkbox-label">
+                    <input id="srs-update-enabled" onchange="onSrsUpdateToggle()" type="checkbox">
+                    <span>规则自动更新</span>
+                </div>
+                <div class="path-input" id="srs-update-settings" style="display:none;">
+                    <label>Cron:</label>
+                    <input id="srs-cron" onchange="saveServiceSettings()" style="width:120px;" type="text">
+                </div>
+                <div class="path-input">
+                    <label>SRS 规则存储路径:</label>
+                    <input id="rules-path" onchange="saveServiceSettings()" style="width:350px;" type="text">
+                </div>
+            </div>
+
+            <div class="setting-row">
+                <div class="checkbox-label">
+                    <a href="#" id="node-management-link" style="font-size: 14px; font-weight: normal; text-decoration: none; border-bottom: none; padding: 0;" target="_blank">
+                        进入节点管理面板
+                    </a>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+
+    <!-- ==================== CFNAT 设置 ==================== -->
+    <div class="ns-section">
+        <div class="ns-title" style="display: flex; justify-content: space-between; align-items: center;">
+            <span>CFNAT 设置</span>
+            <span id="cfnat-status" style="font-size: 14px; font-weight: normal;"></span>
+        </div>
+        <div class="service-settings">
+            <div class="setting-row">
+                <div class="checkbox-label">
+                    <input id="cfnat-enabled" onchange="saveCfnatSettings()" type="checkbox">
+                    <span>启用 CFNAT:</span>
+                </div>
+                <div class="path-input">
+                    <label>监听地址:</label>
+                    <input id="cfnat-addr" onchange="saveCfnatSettings()" placeholder="0.0.0.0:2345" style="width:150px;" type="text">
+                </div>
+                <div class="path-input">
+                    <label>数据中心:</label>
+                    <input id="cfnat-colo" onchange="this.value = this.value.toUpperCase(); saveCfnatSettings()" placeholder="NRT" style="width:100px; text-transform: uppercase;" type="text">
+                    <span> 常用 NRT,SIN,HKG,SJC,LAX </span>
+                </div>
+            </div>
+            <div class="setting-row">
+                <div class="path-input">
+                    <label>IP起始段:</label>
+                    <input id="cfnat-ipstart" onchange="saveCfnatSettings()" placeholder="162.159,172.64" style="width:200px;" type="text">
+                </div>
+                <div class="path-input">
+                    <label>扫描线程:</label>
+                    <input id="cfnat-task" max="2048" min="1" onchange="saveCfnatSettings()" style="width:80px;" type="number">
+                </div>
+                <div class="path-input">
+                    <label>有效IP数:</label>
+                    <input id="cfnat-ipnum" min="1" onchange="saveCfnatSettings()" style="width:80px;" type="number">
+                </div>
+            </div>
+            <div class="setting-row">
+                <div class="path-input">
+                    <label>延迟阈值(ms):</label>
+                    <input id="cfnat-delay" min="0" onchange="saveCfnatSettings()" style="width:80px;" type="number">
+                </div>
+                <div class="path-input">
+                    <label>连接尝试:</label>
+                    <input id="cfnat-num" min="1" onchange="saveCfnatSettings()" style="width:80px;" type="number">
+                </div>
+                <div class="path-input">
+                    <label>IP版本:</label>
+                    <select id="cfnat-ips" onchange="saveCfnatSettings()" style="width:60px;">
+                        <option value="4">4</option>
+                        <option value="6">6</option>
+                    </select>
+                </div>
+            </div>
+            <div class="setting-row">
+                <div class="path-input">
+                    <label>TLS端口:</label>
+                    <input id="cfnat-port" max="65535" min="1" onchange="saveCfnatSettings()" style="width:80px;" type="number">
+                </div>
+                <div class="path-input">
+                    <label>HTTP端口:</label>
+                    <input id="cfnat-http-port" max="65535" min="1" onchange="saveCfnatSettings()" style="width:80px;" type="number">
+                </div>
+                <div class="path-input">
+                    <label>日志级别:</label>
+                    <select id="cfnat-log-level" onchange="saveCfnatSettings()" style="width:100px;">
+                        <option value="silent">silent</option>
+                        <option value="error">error</option>
+                        <option value="warn">warn</option>
+                        <option value="info">info</option>
+                        <option value="debug">debug</option>
+                    </select>
+                </div>
+            </div>
+            <div class="setting-row">
+                <div class="checkbox-label">
+                    <span>随机IP:</span>
+                    <input id="cfnat-random" onchange="saveCfnatSettings()" type="checkbox">
+                </div>
+                <div class="checkbox-label">
+                    <span>百度前置代理:</span>
+                    <input id="cfnat-baidu-proxy" onchange="saveCfnatSettings()" type="checkbox">
+                </div>
+            </div>
+            <div class="setting-row">
+                <div class="path-input">
+                    <label>运营商分池监听:</label>
+                    <input id="cfnat-carrier-listens" onchange="saveCfnatSettings()" placeholder="mobile=0.0.0.0:1234,telecom=0.0.0.0:1235" style="width:350px;" type="text">
+                </div>
+            </div>
+            <div class="setting-row">
+                <div class="path-input">
+                    <label>工作目录:</label>
+                    <input id="cfnat-workdir" onchange="saveCfnatSettings()" placeholder="/mnt/sda3/opt/singbox" style="width:300px;" type="text">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 订阅源设置 ==================== -->
+    <div class="ns-section">
+        <div class="ns-title">订阅源设置</div>
+        <div class="sub-field">
+            <label>Sing-Box 节点 (直接粘贴 outbounds JSON):</label>
+            <textarea id="singbox-nodes" placeholder='{
+  "outbounds": [
+    {
+      "type": "vless",
+      "tag": "demo xtls-reality",...
+    },...
+  ]
+}' rows="5"></textarea>
+        </div>
+        <div class="sub-field"><label>V2Ray URI 列表:</label><textarea id="v2ray-subs" rows="5"></textarea></div>
+        <div class="sub-field"><label>Clash 订阅链接:</label><textarea id="clash-subs" rows="5"></textarea></div>
+        <button class="cbi-button cbi-button-apply action-btn" id="btn-convert" onclick="saveAndConvert()">保存订阅并更新节点池</button>
+        <button class="cbi-button cbi-button-apply action-btn" onclick="openProxyPoolModal()">查看节点池</button>
+    </div>
+
+    <!-- ==================== 节点组管理 ==================== -->
+    <div class="ns-section">
+        <div class="ns-title">节点组管理</div>
+        <button class="cbi-button cbi-button-add" onclick="openGroupModal()">+ 新增节点组</button>
+        <table id="group-table">
+            <thead>
+            <tr>
+                <th width="50">序号</th>
+                <th>组名 (Tag)</th>
+                <th width="100">类型</th>
+                <th>成员</th>
+                <th width="150">操作</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <!-- ==================== 分流规则绑定 ==================== -->
+    <div class="ns-section">
+        <div class="ns-title">分流规则绑定</div>
+        <div style="margin-bottom: 10px; font-size: 13px; color: var(--ns-text-light);">
+            💡 提示：拖动 <span style="color: var(--ns-primary);">≡</span> 手柄可排序规则，同类型同出站的规则会自动合并
+        </div>
+        <button class="cbi-button cbi-button-add" onclick="openRuleModal()">+ 新增分流绑定</button>
+        <table id="rule-table">
+            <thead>
+            <tr>
+                <th width="30">#</th>
+                <th width="30"></th>
+                <th>匹配规则条目</th>
+                <th>出站目标</th>
+                <th width="150">操作</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <!-- ==================== 配置备份 ==================== -->
+    <div class="ns-section">
+        <div class="ns-title">配置备份</div>
+        <div class="backup-row">
+            <button class="cbi-button cbi-button-apply" onclick="downloadBackup()">导出备份</button>
+            <form action="/cgi-bin/luci/admin/services/nanoswift/config_backup_restore" enctype="multipart/form-data" id="restore-form" method="post" style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                <button class="cbi-button cbi-button-reset" disabled id="restore-btn" onclick="submitRestoreForm()" type="button">导入备份</button>
+                <input accept=".tar.gz" id="restore-file" name="backup_file" onchange="onRestoreFileChange()" type="file">
+            </form>
+        </div>
+        <div class="field-hint" style="margin-top: 8px;">
+            💡 备份还原导入时会覆盖当前配置并清空恢复静态文件。
+        </div>
+    </div>
+
+    <div class="ns-section" style="text-align: center;">
+        <button class="cbi-button cbi-button-save action-btn" onclick="generateConfig()">应用配置</button>
+        <span style="margin: 0 10px; color: #ccc;">&nbsp</span>
+        <button class="cbi-button cbi-button-apply action-btn" id="restart-btn" onclick="serviceOp('restart')">重启服务</button>
+        <span style="margin: 0 10px; color: #ccc;">&nbsp</span>
+        <button class="cbi-button cbi-button-reset action-btn" onclick="serviceOp('stop')">停止服务</button>
+    </div>
+</div>
+
+<!-- Modals -->
+<div class="modal" id="modal-group">
+    <div class="modal-content">
+        <div class="modal-header"><span>配置节点组</span><span class="close-btn" onclick="closeModal()">&times;</span></div>
+        <div class="modal-body">
+            <input id="mg-index" type="hidden" value="-1">
+            <label>组名:</label><input id="mg-tag" placeholder="必须非空" style="width: 100%; margin-bottom: 10px;" type="text">
+            <label>策略:</label><select id="mg-type" style="width: 100%; margin-bottom: 10px;">
+            <option value="urltest">urltest</option>
+            <option value="selector">selector</option>
+        </select>
+
+            <label>选择成员节点:</label>
+            <div style="display: flex; gap: 8px; margin-bottom: 8px; align-items: center;">
+                <input class="search-bar" id="mg-tags-search" oninput="filterTags('mg-tags', this.value)" placeholder="搜索成员..." style="flex: 1; margin-bottom: 0;" type="text">
+                <button class="cbi-button" id="mg-advanced-toggle" onclick="toggleAdvancedMatch()" style="white-space: nowrap; height: 28px; line-height: 18px; padding: 0 10px; font-size: 12px;" title="高级匹配模式" type="button">⚙ 高级</button>
+            </div>
+
+            <!-- 高级匹配面板 -->
+            <div id="mg-advanced-panel" style="display: none; margin-bottom: 10px; padding: 12px; background: var(--ns-bg-tertiary); border: 1px solid var(--ns-border); border-radius: 4px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <div style="font-size: 13px; color: var(--ns-text-light);">
+                        💡 使用 <code>|</code> OR，<code>+</code> AND，<code>!</code> 非，<code>()</code> 分组
+                    </div>
+                    <button class="cbi-button cbi-button-reset" onclick="hideAdvancedPanel()" style="white-space: nowrap; height: 24px; line-height: 16px; padding: 0 8px; font-size: 11px;" title="隐藏高级面板" type="button">▲ 隐藏</button>
+                </div>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <input id="mg-advanced-expr" oninput="applyAdvancedMatch()" placeholder="例如: 香港|日本 或 (香港+高速)|(日本+低延迟)" style="flex: 1; height: 28px; box-sizing: border-box; padding: 0 8px; border: 1px solid var(--ns-border); border-radius: 4px; background: var(--ns-input-bg); color: var(--ns-text);" type="text">
+                    <button class="cbi-button cbi-button-apply" onclick="quickSelectMatched()" style="white-space: nowrap; height: 28px; line-height: 18px; padding: 0 12px; font-size: 12px;" title="选中所有匹配的节点" type="button">全选</button>
+                    <button class="cbi-button cbi-button-reset" onclick="quickDeselectMatched()" style="white-space: nowrap; height: 28px; line-height: 18px; padding: 0 12px; font-size: 12px;" title="取消选中所有匹配的节点" type="button">不选</button>
+                </div>
+                <div id="mg-match-preview" style="margin-top: 8px; font-size: 12px; color: var(--ns-text-light);"></div>
+            </div>
+
+            <div class="tag-grid" id="mg-tags"></div>
+
+        </div>
+
+        <div class="modal-footer">
+            <button class="cbi-button cbi-button-apply" onclick="saveGroup()">保存</button>
+            <button class="cbi-button cbi-button-reset" onclick="closeModal()">取消</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="modal-rule">
+    <div class="modal-content">
+        <div class="modal-header"><span>配置规则分流</span><span class="close-btn" onclick="closeModal()">&times;</span></div>
+        <div class="modal-body">
+            <input id="mr-index" type="hidden" value="-1">
+
+            <label>规则类型:</label>
+            <select id="rule-type" onchange="onRuleTypeChange()" style="width: 100%; margin-bottom: 10px;">
+                <option value="srs">SRS 规则集</option>
+                <option value="ip">IP 地址</option>
+                <option value="port">端口</option>
+                <option value="port_range">端口范围</option>
+                <option value="domain_suffix">域名后缀</option>
+                <option value="domain_keyword">域名关键词</option>
+            </select>
+
+            <div id="rule-srs-area">
+                <label>选择匹配规则 (SRS):</label>
+                <div class="tag-grid" id="mr-selected-rules" style="min-height:40px; margin-bottom:10px;"></div>
+                <input class="search-bar" id="mr-rules-search" oninput="filterTags('mr-rules', this.value)" placeholder="搜索规则..." type="text">
+                <div class="tag-grid" id="mr-rules" style="max-height:150px; overflow-y:auto;"></div>
+            </div>
+
+            <div id="rule-ip-area" style="display:none;">
+                <label>IP 地址 (多个用逗号分隔):</label>
+                <input id="rule-ip-value" placeholder="例如: 1.1.1.1, 8.8.8.8, 10.0.0.0/8" style="width: 100%; margin-bottom: 10px;" type="text">
+                <div class="field-hint">支持单个IP、多个IP、CIDR网段，如: 1.1.1.1 或 1.1.1.1,8.8.8.8,10.0.0.0/8</div>
+            </div>
+
+            <div id="rule-port-area" style="display:none;">
+                <label>端口号 (多个用逗号分隔):</label>
+                <input id="rule-port-value" placeholder="例如: 443, 8080, 8443" style="width: 100%; margin-bottom: 10px;" type="text">
+                <div class="field-hint">支持单个端口或多个端口，如: 443 或 443,8080,8443</div>
+            </div>
+
+            <div id="rule-port-range-area" style="display:none;">
+                <label>端口范围 (多个用逗号分隔):</label>
+                <input id="rule-port-range-value" placeholder="例如: 1000-2000, 3000-4000" style="width: 100%; margin-bottom: 10px;" type="text">
+                <div class="field-hint">支持单个范围或多个范围，如: 1000-2000 或 1000-2000,3000-4000</div>
+            </div>
+
+            <div id="rule-domain-suffix-area" style="display:none;">
+                <label>域名后缀 (多个用逗号分隔):</label>
+                <input id="rule-domain-suffix-value" placeholder="例如: google.com, github.com, openai.com" style="width: 100%; margin-bottom: 10px;" type="text">
+                <div class="field-hint">支持单个后缀或多个后缀，如: google.com 或 google.com,github.com</div>
+            </div>
+
+            <div id="rule-domain-keyword-area" style="display:none;">
+                <label>域名关键词 (多个用逗号分隔):</label>
+                <input id="rule-domain-keyword-value" placeholder="例如: google, youtube, netflix" style="width: 100%; margin-bottom: 10px;" type="text">
+                <div class="field-hint">支持单个关键词或多个关键词，匹配包含该关键词的域名，如: google 或 google,youtube,netflix</div>
+            </div>
+
+            <hr>
+            <label>目标出站:</label>
+            <input class="search-bar" id="mr-outs-search" oninput="filterTags('mr-outs', this.value)" placeholder="搜索组,节点..." type="text">
+            <div class="tag-grid" id="mr-outs"></div>
+        </div>
+        <div class="modal-footer">
+            <button class="cbi-button cbi-button-apply" onclick="saveRule()">保存</button>
+            <button class="cbi-button cbi-button-reset" onclick="closeModal()">取消</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="modal-proxy-pool">
+    <div class="modal-content">
+        <div class="modal-header"><span>节点池管理</span><span class="close-btn" onclick="closeModal()">&times;</span></div>
+        <div class="modal-body">
+            <div id="proxy-count" style="margin-bottom:10px;">共 0 个节点</div>
+            <input class="search-bar" oninput="renderProxyPool(this.value)" type="text">
+            <div class="proxy-list" id="proxy-pool-list" style="margin-top:10px;"></div>
+        </div>
+        <div class="modal-footer">
+            <button class="cbi-button cbi-button-apply" onclick="saveProxyPool()">应用移除</button>
+            <button class="cbi-button cbi-button-reset" onclick="closeModal()">关闭</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ==========================================================================
+    // 暗色模式检测 - 设置 data-theme 属性
+    // ==========================================================================
+    function updateTheme() {
+        var bodyBg = window.getComputedStyle(document.body).backgroundColor;
+        var rgb = bodyBg.match(/\d+/g);
+        var isDark = false;
+
+        if (rgb && rgb.length >= 3) {
+            var brightness = (parseInt(rgb[0]) * 299 + parseInt(rgb[1]) * 587 + parseInt(rgb[2]) * 114) / 1000;
+            isDark = brightness < 128;
+        }
+
+        document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    }
+
+    updateTheme();
+
+    // 监听 body 属性和样式变化 (Argon 主题切换暗色时修改 body style)
+    var observer = new MutationObserver(function (mutations) {
+        mutations.forEach(function (mutation) {
+            if (mutation.type === 'attributes' &&
+                (mutation.attributeName === 'style' || mutation.attributeName === 'class')) {
+                updateTheme();
+            }
+        });
+    });
+    observer.observe(document.body, {attributes: true});
+
+    // 监听 localStorage 主题设置变化
+    window.addEventListener('storage', function (e) {
+        if (e.key === 'argon_dark_mode' || e.key === 'dark_mode' || e.key === 'theme') {
+            updateTheme();
+        }
+    });
+
+    // ==========================================================================
+    // 应用状态
+    // ==========================================================================
+    var state = {proxyTags: [], configRules: [], groups: [], rulesUI: [], selectedMembers: [], selectedRules: [], selectedOutbound: ""};
+    var removedProxies = [];
+    var countdownInterval = null;
+
+    // 更新节点管理链接
+    function updateNodeManagementLink() {
+        var secretInput = document.getElementById("clash-secret");
+        var portInput = document.getElementById("clash-port");
+        var nodeLink = document.getElementById("node-management-link");
+        if (secretInput && nodeLink) {
+            var secret = secretInput.value || "";
+            var port = portInput ? (portInput.value || "9090") : "9090";
+            var routerIp = window.location.hostname;
+            var newHref = "http://" + routerIp + ":" + port + "/ui/?secret=" + secret + "#/proxies";
+            nodeLink.href = newHref;
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        refreshData();
+        updateNodeManagementLink();
+        loadCfnatSettings();
+        checkClashApiStatus();
+        setInterval(refreshCfnatStatus, 10000);
+        setInterval(checkClashApiStatus, 10000);
+    });
+
+    async function fetchApi(path, body) {
+        var res = await fetch("/cgi-bin/luci/admin/services/nanoswift/" + path, {method: body ? "POST" : "GET", body: body ? JSON.stringify(body) : null});
+        return res.json();
+    }
+
+    async function refreshData() {
+        try {
+            var results = await Promise.all([
+                fetchApi("proxies_get"), fetchApi("proxy_tags"), fetchApi("config_rules_get"), fetchApi("groups_get"), fetchApi("rules_ui_get"), fetchApi("service_settings_get")
+            ]);
+            var subs = results[0], tagsRes = results[1], rulesRes = results[2], gRes = results[3], rRes = results[4], svcRes = results[5];
+
+            var c_arr = Array.isArray(subs.clash) ? subs.clash : [];
+            var v_arr = Array.isArray(subs.v2ray) ? subs.v2ray : [];
+            var sb_nodes = subs.singbox_nodes || "";
+            document.getElementById("clash-subs").value = c_arr.join("\n");
+            document.getElementById("v2ray-subs").value = v_arr.join("\n");
+            document.getElementById("singbox-nodes").value = sb_nodes;
+
+            state.proxyTags = tagsRes.tags || [];
+            state.configRules = rulesRes.lines || [];
+            state.groups = gRes.groups || [];
+            state.rulesUI = rRes.rules || [];
+            if (svcRes) {
+                document.getElementById("service-enabled").checked = !!svcRes.enabled;
+                document.getElementById("service-delay").value = svcRes.delay || 10;
+                document.getElementById("rules-path").value = svcRes.rules_path || "/etc/nanoswift/rules/";
+                document.getElementById("singbox-bin").value = svcRes.singbox_bin || "/usr/bin/sing-box";
+                document.getElementById("singbox-workdir").value = svcRes.work_dir || "/etc/nanoswift/run";
+                document.getElementById("mixed-port").value = svcRes.mixed_port || "1080";
+                document.getElementById("clash-secret").value = svcRes.clash_secret || "";
+                document.getElementById("clash-port").value = svcRes.clash_port || "9090";
+                document.getElementById("srs-update-enabled").checked = !!svcRes.srs_update_enabled;
+                document.getElementById("srs-cron").value = svcRes.srs_cron || "1 5 */2 * *";
+                document.getElementById("srs-update-settings").style.display = svcRes.srs_update_enabled ? "block" : "none";
+            }
+            renderTables();
+            updateNodeManagementLink();
+        } catch (e) {
+            console.error("Refresh failed:", e);
+        }
+    }
+
+    function renderTables() {
+        var groupHtml = "";
+        for (var i = 0; i < state.groups.length; i++) {
+            var g = state.groups[i];
+            var matchRuleDisplay = g.match_rule ? '<br><small style="color: var(--ns-text-light);">匹配公式: ' + escapeHtml(g.match_rule) + '</small>' : '';
+            groupHtml += "<tr><td>" + (i + 1) + "</td><td><strong>" + escapeHtml(g.tag) + "</strong>" + matchRuleDisplay + "</td><td><code>" + g.type + "</code></td><td>" + g.members.length + " 节点</td><td><button class=\"cbi-button\" onclick=\"openGroupModal(" + i + ")\">编辑</button> <button class=\"cbi-button cbi-button-reset\" onclick=\"deleteItem('group'," + i + ")\">删除</button></td></tr>";
+        }
+        document.querySelector("#group-table tbody").innerHTML = groupHtml;
+
+        // ==========================================================================
+        // 合并规则：按 rule_type + outbound 分组，合并成一条新规则
+        // ==========================================================================
+        var mergedMap = {};
+        var mergedOrder = [];
+
+        for (var i = 0; i < state.rulesUI.length; i++) {
+            var r = state.rulesUI[i];
+            var ruleType = r.rule_type || "srs";
+            var outbound = r.outbound || "";
+            var mergeKey = ruleType + "|||" + outbound;
+
+            if (!mergedMap[mergeKey]) {
+                mergedMap[mergeKey] = {
+                    ruleType: ruleType,
+                    outbound: outbound,
+                    rules: []
+                };
+                mergedOrder.push(mergeKey);
+            }
+            mergedMap[mergeKey].rules.push(r.rule);
+        }
+
+        var newRulesUI = [];
+        for (var i = 0; i < mergedOrder.length; i++) {
+            var mergeKey = mergedOrder[i];
+            var group = mergedMap[mergeKey];
+            var mergedRule = group.rules.join(",");
+
+            newRulesUI.push({
+                rule: mergedRule,
+                outbound: group.outbound,
+                rule_type: group.ruleType
+            });
+        }
+
+        state.rulesUI = newRulesUI;
+        fetchApi("rules_ui_set", {rules: state.rulesUI});
+
+        // 渲染规则表格（带拖动手柄）
+        var ruleHtml = "";
+        for (var i = 0; i < state.rulesUI.length; i++) {
+            var r = state.rulesUI[i];
+            var ruleType = r.rule_type || "srs";
+            var outbound = r.outbound || "";
+            var ruleValue = r.rule || "";
+
+            var typeLabel = "";
+            if (ruleType === "srs") typeLabel = "\u{1F4E6}";
+            else if (ruleType === "ip") typeLabel = "\u{1F310}";
+            else if (ruleType === "port") typeLabel = "\u{1F50C}";
+            else if (ruleType === "port_range") typeLabel = "\u{1F4CA}";
+            else if (ruleType === "domain_suffix") typeLabel = "\u{1F4CB}";
+            else if (ruleType === "domain_keyword") typeLabel = "\u{1F50D}";
+            else typeLabel = "\u{1F4CB}";
+
+            var ruleDisplay = formatRuleDisplay(ruleType, ruleValue);
+
+            ruleHtml += "<tr draggable=\"true\" data-index=\"" + i + "\">" +
+                "<td>" + (i + 1) + "</td>" +
+                "<td><span class=\"drag-handle\">\u2630</span></td>" +
+                "<td><code>" + typeLabel + " " + escapeHtml(ruleDisplay) + "</code></td>" +
+                "<td>\u279C " + (outbound ? escapeHtml(outbound) : '<span style="color:red">(空)</span>') + "</td>" +
+                "<td><button class=\"cbi-button\" onclick=\"openRuleModal(" + i + ")\">编辑</button> <button class=\"cbi-button cbi-button-reset\" onclick=\"deleteItem('rule'," + i + ")\">删除</button></td>" +
+                "</tr>";
+        }
+        document.querySelector("#rule-table tbody").innerHTML = ruleHtml;
+
+        // 初始化拖动排序
+        initDragSort();
+    }
+
+    // 格式化规则显示
+    function formatRuleDisplay(ruleType, ruleValue) {
+        var items = ruleValue.split(",").map(function (s) {
+            return s.trim();
+        });
+
+        if (ruleType === "srs") {
+            return "SRS: " + items.join(", ");
+        } else if (ruleType === "ip") {
+            return "IP: " + items.join(", ");
+        } else if (ruleType === "port") {
+            return "端口: " + items.join(", ");
+        } else if (ruleType === "port_range") {
+            return "端口范围: " + items.join(", ");
+        } else if (ruleType === "domain_suffix") {
+            return "域名后缀: ." + items.join(", ");
+        } else if (ruleType === "domain_keyword") {
+            return "关键词: " + items.join(", ");
+        }
+        return ruleValue;
+    }
+
+    function escapeHtml(str) {
+        if (!str) return "";
+        return str.replace(/[&<>]/g, function (m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    async function saveServiceSettings() {
+        await fetchApi("service_settings_set", {
+            enabled: document.getElementById("service-enabled").checked,
+            delay: parseInt(document.getElementById("service-delay").value) || 10,
+            rules_path: document.getElementById("rules-path").value,
+            singbox_bin: document.getElementById("singbox-bin").value,
+            work_dir: document.getElementById("singbox-workdir").value,
+            mixed_port: document.getElementById("mixed-port").value || "1080",
+            clash_secret: document.getElementById("clash-secret").value,
+            clash_port: document.getElementById("clash-port").value || "9090",
+            srs_update_enabled: document.getElementById("srs-update-enabled").checked,
+            srs_cron: document.getElementById("srs-cron").value
+        });
+        updateNodeManagementLink();
+    }
+
+    function onSrsUpdateToggle() {
+        document.getElementById("srs-update-settings").style.display = document.getElementById("srs-update-enabled").checked ? "block" : "none";
+        saveServiceSettings();
+    }
+
+    function openGroupModal(idx) {
+        if (idx === undefined) idx = -1;
+        document.getElementById("mg-index").value = idx;
+        var g = idx > -1 ? state.groups[idx] : {tag: "", type: "urltest", members: [], match_rule: ""};
+        document.getElementById("mg-tag").value = g.tag;
+        document.getElementById("mg-type").value = g.type;
+        document.getElementById("mg-advanced-expr").value = g.match_rule || "";
+        state.selectedMembers = Array.isArray(g.members) ? g.members.slice() : [];
+        document.getElementById("mg-tags-search").value = "";
+        renderGroupTags();
+        document.getElementById("modal-group").style.display = "block";
+    }
+
+    function renderGroupTags() {
+        if (advancedMatchState.enabled && advancedMatchState.currentExpr !== "") {
+            applyAdvancedMatch();
+            return;
+        }
+        var kw = document.getElementById("mg-tags-search").value;
+        var html = "";
+        for (var i = 0; i < state.proxyTags.length; i++) {
+            var t = state.proxyTags[i];
+            var activeClass = state.selectedMembers.indexOf(t) > -1 ? "active" : "";
+            html += "<div class=\"tag-btn " + activeClass + "\" onclick=\"toggleMultiSelect(state.selectedMembers, '" + t.replace(/'/g, "\\'") + "', 'mg-tags', renderGroupTags)\">" + escapeHtml(t) + "</div>";
+        }
+        document.getElementById("mg-tags").innerHTML = html;
+        if (kw) filterTags('mg-tags', kw);
+    }
+
+    function toggleMultiSelect(arr, val, containerId, renderFn) {
+        var i = arr.indexOf(val);
+        if (i > -1) arr.splice(i, 1);
+        else arr.push(val);
+        renderFn();
+    }
+
+    async function saveGroup() {
+        var i = parseInt(document.getElementById("mg-index").value);
+        var matchRule = document.getElementById("mg-advanced-expr").value.trim();
+        var g = {
+            tag: document.getElementById("mg-tag").value.trim(),
+            type: document.getElementById("mg-type").value,
+            members: state.selectedMembers
+        };
+        // 保存匹配规则（如果有的话）
+        if (matchRule !== "") {
+            g.match_rule = matchRule;
+        }
+        if (!g.tag) return alert("组名不能为空");
+        if (i > -1) state.groups[i] = g;
+        else state.groups.push(g);
+        await fetchApi("groups_set", {groups: state.groups});
+        closeModal();
+        refreshData();
+    }
+
+    function openRuleModal(idx) {
+        if (idx === undefined) idx = -1;
+        document.getElementById("mr-index").value = idx;
+        var r = idx > -1 ? state.rulesUI[idx] : {rule: "", outbound: "", rule_type: "srs"};
+
+        var ruleType = r.rule_type || "srs";
+        var ruleValue = r.rule || "";
+
+        // 如果没有明确的 rule_type，尝试自动推断
+        if (!r.rule_type && ruleValue) {
+            if (ruleValue.match(/^\d+$/)) {
+                ruleType = "port";
+            } else if (ruleValue.match(/^\d+-\d+$/)) {
+                ruleType = "port_range";
+            } else if (ruleValue.match(/^[^,]+\.(com|cn|org|net)$/)) {
+                ruleType = "domain_suffix";
+            } else if (ruleValue.match(/^\d+\.\d+\.\d+\.\d+/)) {
+                ruleType = "ip";
+            } else if (ruleValue.match(/^[a-zA-Z0-9_-]+$/)) {
+                ruleType = "domain_keyword";
+            } else {
+                ruleType = "srs";
+            }
+        }
+
+        document.getElementById("rule-type").value = ruleType;
+        document.getElementById("rule-ip-value").value = (ruleType === "ip") ? ruleValue : "";
+        document.getElementById("rule-port-value").value = (ruleType === "port") ? ruleValue : "";
+        document.getElementById("rule-port-range-value").value = (ruleType === "port_range") ? ruleValue : "";
+        document.getElementById("rule-domain-suffix-value").value = (ruleType === "domain_suffix") ? ruleValue : "";
+        document.getElementById("rule-domain-keyword-value").value = (ruleType === "domain_keyword") ? ruleValue : "";
+
+        state.selectedRules = (ruleType === "srs" && ruleValue) ? ruleValue.split(",").map(function (s) {
+            return s.trim();
+        }) : [];
+        state.selectedOutbound = r.outbound;
+
+        onRuleTypeChange();
+        renderRuleSrs();
+        renderRuleOuts();
+        document.getElementById("modal-rule").style.display = "block";
+    }
+
+    function onRuleTypeChange() {
+        var ruleType = document.getElementById("rule-type").value;
+        document.getElementById("rule-srs-area").style.display = ruleType === "srs" ? "block" : "none";
+        document.getElementById("rule-ip-area").style.display = ruleType === "ip" ? "block" : "none";
+        document.getElementById("rule-port-area").style.display = ruleType === "port" ? "block" : "none";
+        document.getElementById("rule-port-range-area").style.display = ruleType === "port_range" ? "block" : "none";
+        document.getElementById("rule-domain-suffix-area").style.display = ruleType === "domain_suffix" ? "block" : "none";
+        document.getElementById("rule-domain-keyword-area").style.display = ruleType === "domain_keyword" ? "block" : "none";
+    }
+
+    function renderRuleSrs() {
+        var ruleType = document.getElementById("rule-type").value;
+        if (ruleType !== "srs") return;
+
+        var kw = document.getElementById("mr-rules-search").value;
+        var selectedHtml = "";
+        for (var i = 0; i < state.selectedRules.length; i++) {
+            var r = state.selectedRules[i];
+            selectedHtml += "<div class=\"tag-btn active\" onclick=\"toggleRuleSrs('" + r.replace(/'/g, "\\'") + "')\">" + escapeHtml(r) + "</div>";
+        }
+        document.getElementById("mr-selected-rules").innerHTML = selectedHtml;
+
+        var rulesHtml = "";
+        for (var i = 0; i < state.configRules.length; i++) {
+            var r = state.configRules[i];
+            var activeClass = state.selectedRules.indexOf(r) > -1 ? "active" : "";
+            rulesHtml += "<div class=\"tag-btn " + activeClass + "\" onclick=\"toggleRuleSrs('" + r.replace(/'/g, "\\'") + "')\">" + escapeHtml(r) + "</div>";
+        }
+        document.getElementById("mr-rules").innerHTML = rulesHtml;
+        if (kw) filterTags('mr-rules', kw);
+    }
+
+    function toggleRuleSrs(r) {
+        var i = state.selectedRules.indexOf(r);
+        if (i > -1) state.selectedRules.splice(i, 1);
+        else state.selectedRules.push(r);
+        renderRuleSrs();
+    }
+
+    function renderRuleOuts() {
+        var kw = document.getElementById("mr-outs-search").value;
+        // 默认出口: direct 和 reject
+        var outs = ["direct", "reject"];
+        for (var i = 0; i < state.groups.length; i++) outs.push(state.groups[i].tag);
+        for (var i = 0; i < state.proxyTags.length; i++) outs.push(state.proxyTags[i]);
+
+        var html = "";
+        for (var i = 0; i < outs.length; i++) {
+            var o = outs[i];
+            var activeClass = state.selectedOutbound === o ? "active" : "";
+            html += "<div class=\"tag-btn " + activeClass + "\" onclick=\"state.selectedOutbound='" + o.replace(/'/g, "\\'") + "';renderRuleOuts()\">" + escapeHtml(o) + "</div>";
+        }
+        document.getElementById("mr-outs").innerHTML = html;
+        if (kw) filterTags('mr-outs', kw);
+    }
+
+    async function saveRule() {
+        var i = parseInt(document.getElementById("mr-index").value);
+        var ruleType = document.getElementById("rule-type").value;
+        var ruleValue = "";
+
+        switch (ruleType) {
+            case "srs":
+                ruleValue = state.selectedRules.join(",");
+                if (!ruleValue) return alert("请选择 SRS 规则");
+                break;
+            case "ip":
+                ruleValue = document.getElementById("rule-ip-value").value.trim();
+                if (!ruleValue) return alert("请输入 IP 地址");
+                var ips = ruleValue.split(/[ ,]+/).filter(function (ip) {
+                    return ip.trim();
+                });
+                for (var ipIdx = 0; ipIdx < ips.length; ipIdx++) {
+                    var ip = ips[ipIdx].trim();
+                    // 验证 IP 或 CIDR 格式
+                    if (!ip.match(/^\d+\.\d+\.\d+\.\d+(\/\d+)?$/) && !ip.match(/^[a-fA-F0-9:]+(\/\d+)?$/)) {
+                        return alert("IP 地址格式错误: " + ip + "，应为 IPv4、IPv6 或 CIDR 格式");
+                    }
+                }
+                ruleValue = ips.join(",");
+                break;
+            case "port":
+                ruleValue = document.getElementById("rule-port-value").value.trim();
+                if (!ruleValue) return alert("请输入端口号");
+                var ports = ruleValue.split(/[ ,]+/).filter(function (p) {
+                    return p.trim();
+                });
+                for (var pIdx = 0; pIdx < ports.length; pIdx++) {
+                    var p = ports[pIdx];
+                    if (!p.match(/^\d+$/)) return alert("端口格式错误: " + p + "，必须是数字");
+                    var portNum = parseInt(p);
+                    if (portNum < 1 || portNum > 65535) return alert("端口范围错误: " + p + "，必须在1-65535之间");
+                }
+                ruleValue = ports.join(",");
+                break;
+            case "port_range":
+                ruleValue = document.getElementById("rule-port-range-value").value.trim();
+                if (!ruleValue) return alert("请输入端口范围");
+                var ranges = ruleValue.split(/[ ,]+/).filter(function (r) {
+                    return r.trim();
+                });
+                for (var rIdx = 0; rIdx < ranges.length; rIdx++) {
+                    var rg = ranges[rIdx];
+                    if (!rg.match(/^\d+-\d+$/)) return alert("端口范围格式错误: " + rg + "，应为: 1000-2000");
+                    var parts = rg.split('-');
+                    var start = parseInt(parts[0]);
+                    var end = parseInt(parts[1]);
+                    if (start < 1 || start > 65535 || end < 1 || end > 65535 || start >= end) return alert("端口范围无效: " + rg + "，起始必须小于结束，且都在1-65535之间");
+                }
+                ruleValue = ranges.join(",");
+                break;
+            case "domain_suffix":
+                ruleValue = document.getElementById("rule-domain-suffix-value").value.trim();
+                if (!ruleValue) return alert("请输入域名后缀");
+                var domains = ruleValue.split(/[ ,]+/).filter(function (d) {
+                    return d.trim();
+                });
+                var cleanedDomains = [];
+                for (var dIdx = 0; dIdx < domains.length; dIdx++) {
+                    var d = domains[dIdx].trim();
+                    // 去除可能的前缀 http:// https://
+                    d = d.replace(/^https?:\/\//, '');
+                    // 去除路径部分
+                    d = d.split('/')[0];
+                    // 去除开头和结尾的点
+                    if (d.startsWith(".")) d = d.substring(1);
+                    if (d.endsWith(".")) d = d.substring(0, d.length - 1);
+                    cleanedDomains.push(d);
+                }
+                ruleValue = cleanedDomains.join(",");
+                break;
+
+            case "domain_keyword":
+                ruleValue = document.getElementById("rule-domain-keyword-value").value.trim();
+                if (!ruleValue) return alert("请输入域名关键词");
+                var keywords = ruleValue.split(/[ ,]+/).filter(function (k) {
+                    return k.trim();
+                });
+                if (keywords.length === 0) return alert("请输入至少一个关键词");
+                // 清理每个关键词：去除引号、空格
+                var cleanedKeywords = [];
+                for (var kIdx = 0; kIdx < keywords.length; kIdx++) {
+                    var k = keywords[kIdx].trim();
+                    k = k.replace(/["']/g, '');  // 去除引号
+                    if (k) cleanedKeywords.push(k);
+                }
+                ruleValue = cleanedKeywords.join(",");
+                break;
+        }
+
+        if (!state.selectedOutbound) return alert("请选择出站目标");
+
+        var r = {rule: ruleValue, outbound: state.selectedOutbound, rule_type: ruleType};
+        if (i > -1) state.rulesUI[i] = r;
+        else state.rulesUI.push(r);
+
+        await fetchApi("rules_ui_set", {rules: state.rulesUI});
+        closeModal();
+        refreshData();
+    }
+
+    function closeModal() {
+        var modals = document.querySelectorAll(".modal");
+        for (var i = 0; i < modals.length; i++) {
+            modals[i].style.display = "none";
+        }
+    }
+
+    function filterTags(id, kw) {
+        var k = kw.toLowerCase();
+        var container = document.getElementById(id);
+        if (!container) return;
+        var btns = container.querySelectorAll(".tag-btn");
+        for (var i = 0; i < btns.length; i++) {
+            var btn = btns[i];
+            if (btn.innerText.toLowerCase().indexOf(k) > -1) {
+                btn.style.display = "block";
+            } else {
+                btn.style.display = "none";
+            }
+        }
+    }
+
+    async function generateConfig() {
+        var res = await fetchApi("generate");
+        alert(res.msg);
+    }
+
+    async function serviceOp(act) {
+        if (act === 'restart') {
+            var delayInput = document.getElementById("service-delay");
+            var restartBtn = document.getElementById("restart-btn");
+            var delay = parseInt(delayInput.value) || 10;
+
+            delayInput.disabled = true;
+            restartBtn.disabled = true;
+            restartBtn.textContent = "重启中 (" + delay + "s)...";
+
+            if (countdownInterval) clearInterval(countdownInterval);
+            countdownInterval = setInterval(function () {
+                delay--;
+                if (delay <= 0) {
+                    clearInterval(countdownInterval);
+                    restartBtn.textContent = "重启服务";
+                    delayInput.disabled = false;
+                    restartBtn.disabled = false;
+                } else {
+                    restartBtn.textContent = "重启中 (" + delay + "s)...";
+                }
+            }, 1000);
+
+            await fetchApi("service_control", {action: act});
+        } else {
+            await fetchApi("service_control", {action: act});
+        }
+    }
+
+    async function saveAndConvert() {
+        var btn = document.getElementById("btn-convert");
+        btn.disabled = true;
+        btn.innerText = "正在转换...";
+        try {
+            // 先保存所有订阅源配置（包括 singbox_nodes）
+            await fetchApi("proxies_set", {
+                clash: document.getElementById("clash-subs").value.split("\n").filter(function (s) {
+                    return s.trim();
+                }),
+                v2ray: document.getElementById("v2ray-subs").value.split("\n").filter(function (s) {
+                    return s.trim();
+                }),
+                singbox_nodes: document.getElementById("singbox-nodes").value
+            });
+            // 再更新节点池（重新解析所有订阅源 + singbox_nodes，重建节点池）
+            var res = await fetchApi("update_proxies");
+            alert(res.msg);
+            refreshData();
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "保存订阅并更新节点池";
+        }
+    }
+
+    // ==========================================================================
+    // 高级匹配功能
+    // ==========================================================================
+    var advancedMatchState = {
+        enabled: false,
+        currentExpr: "",
+        lastMatchedTags: []
+    };
+
+    function toggleAdvancedMatch() {
+        var panel = document.getElementById("mg-advanced-panel");
+        var toggleBtn = document.getElementById("mg-advanced-toggle");
+        advancedMatchState.enabled = !advancedMatchState.enabled;
+
+        if (advancedMatchState.enabled) {
+            panel.style.display = "block";
+            toggleBtn.innerHTML = "⚙ 关闭";
+            toggleBtn.style.background = "var(--ns-primary-dark)";
+            toggleBtn.style.color = "#fff";
+            toggleBtn.style.borderColor = "var(--ns-primary-dark)";
+            applyAdvancedMatch();
+        } else {
+            panel.style.display = "none";
+            toggleBtn.innerHTML = "⚙ 高级";
+            toggleBtn.style.background = "";
+            toggleBtn.style.color = "";
+            toggleBtn.style.borderColor = "";
+            // 不清空表达式，保留用户输入的规则
+            advancedMatchState.currentExpr = "";
+            advancedMatchState.lastMatchedTags = [];
+            document.getElementById("mg-match-preview").innerHTML = "";
+            renderGroupTags();
+        }
+    }
+
+    // 隐藏高级面板（不清空表达式）
+    function hideAdvancedPanel() {
+        if (!advancedMatchState.enabled) return;
+
+        var panel = document.getElementById("mg-advanced-panel");
+        var toggleBtn = document.getElementById("mg-advanced-toggle");
+
+        advancedMatchState.enabled = false;
+        panel.style.display = "none";
+        toggleBtn.innerHTML = "⚙ 高级";
+        toggleBtn.style.background = "";
+        toggleBtn.style.color = "";
+        toggleBtn.style.borderColor = "";
+
+        // 保留输入框内容，只重置匹配状态
+        advancedMatchState.currentExpr = "";
+        advancedMatchState.lastMatchedTags = [];
+        document.getElementById("mg-match-preview").innerHTML = "";
+        renderGroupTags();
+    }
+
+    // 解析高级匹配表达式
+    function parseAdvancedExpr(expr) {
+        if (!expr || expr.trim() === "") return null;
+
+        expr = expr.trim();
+
+        // Tokenizer
+        var tokens = [];
+        var i = 0;
+        while (i < expr.length) {
+            var ch = expr[i];
+            if (ch === '(' || ch === ')') {
+                tokens.push({type: 'paren', value: ch});
+                i++;
+            } else if (ch === '|') {
+                tokens.push({type: 'op', value: 'or'});
+                i++;
+            } else if (ch === '+') {
+                tokens.push({type: 'op', value: 'and'});
+                i++;
+            } else if (ch === '!') {
+                tokens.push({type: 'op', value: 'not'});
+                i++;
+            } else if (ch === ' ' || ch === '\t') {
+                i++;
+            } else {
+                var start = i;
+                while (i < expr.length && expr[i] !== '(' && expr[i] !== ')' && expr[i] !== '|' && expr[i] !== '+' && expr[i] !== '!' && expr[i] !== ' ') {
+                    i++;
+                }
+                var word = expr.substring(start, i);
+                if (word) {
+                    tokens.push({type: 'word', value: word.toLowerCase()});
+                }
+            }
+        }
+
+        // 解析表达式 (递归下降，处理 or 和 and，and 优先级更高)
+        var pos = 0;
+
+        function parseOr() {
+            var left = parseAnd();
+            while (pos < tokens.length && tokens[pos].type === 'op' && tokens[pos].value === 'or') {
+                pos++;
+                var right = parseAnd();
+                left = {type: 'or', left: left, right: right};
+            }
+            return left;
+        }
+
+        function parseAnd() {
+            var left = parseNot();
+            while (pos < tokens.length && tokens[pos].type === 'op' && tokens[pos].value === 'and') {
+                pos++;
+                var right = parseNot();
+                left = {type: 'and', left: left, right: right};
+            }
+            return left;
+        }
+
+        function parseNot() {
+            if (pos < tokens.length && tokens[pos].type === 'op' && tokens[pos].value === 'not') {
+                pos++;
+                var expr = parseNot();
+                return {type: 'not', expr: expr};
+            }
+            return parseAtom();
+        }
+
+        function parseAtom() {
+            if (pos >= tokens.length) return null;
+            var token = tokens[pos];
+            if (token.type === 'word') {
+                pos++;
+                return {type: 'keyword', value: token.value};
+            } else if (token.type === 'paren' && token.value === '(') {
+                pos++; // skip '('
+                var expr = parseOr();
+                if (pos < tokens.length && tokens[pos].type === 'paren' && tokens[pos].value === ')') {
+                    pos++; // skip ')'
+                }
+                return expr;
+            }
+            return null;
+        }
+
+        return parseOr();
+    }
+
+    // 评估表达式是否匹配 tag
+    function evalExpr(ast, tag) {
+        if (!ast) return true;
+
+        tag = tag.toLowerCase();
+
+        switch (ast.type) {
+            case 'keyword':
+                return tag.indexOf(ast.value) !== -1;
+            case 'and':
+                return evalExpr(ast.left, tag) && evalExpr(ast.right, tag);
+            case 'or':
+                return evalExpr(ast.left, tag) || evalExpr(ast.right, tag);
+            case 'not':
+                return !evalExpr(ast.expr, tag);
+            default:
+                return false;
+        }
+    }
+
+    // 应用高级匹配
+    function applyAdvancedMatch() {
+        if (!advancedMatchState.enabled) return;
+
+        var exprInput = document.getElementById("mg-advanced-expr");
+        var expr = exprInput.value;
+        advancedMatchState.currentExpr = expr;
+
+        if (expr.trim() === "") {
+            advancedMatchState.lastMatchedTags = [];
+            document.getElementById("mg-match-preview").innerHTML = "";
+            renderGroupTags();
+            return;
+        }
+
+        var ast = parseAdvancedExpr(expr);
+        if (!ast) {
+            document.getElementById("mg-match-preview").innerHTML = '<span style="color: red;">表达式语法错误</span>';
+            return;
+        }
+
+        var matchedTags = [];
+        for (var i = 0; i < state.proxyTags.length; i++) {
+            var tag = state.proxyTags[i];
+            if (evalExpr(ast, tag)) {
+                matchedTags.push(tag);
+            }
+        }
+
+        advancedMatchState.lastMatchedTags = matchedTags;
+
+        var preview = document.getElementById("mg-match-preview");
+        preview.innerHTML = '匹配: <strong>' + matchedTags.length + '</strong> 个节点';
+
+        // 重新渲染标签，高亮匹配的
+        renderGroupTagsWithHighlight(matchedTags);
+    }
+
+    // 高亮渲染组标签（匹配到的标签添加特殊样式）
+    function renderGroupTagsWithHighlight(matchedTags) {
+        var kw = document.getElementById("mg-tags-search").value;
+        var matchSet = {};
+        for (var i = 0; i < matchedTags.length; i++) {
+            matchSet[matchedTags[i]] = true;
+        }
+
+        var html = "";
+        for (var i = 0; i < state.proxyTags.length; i++) {
+            var t = state.proxyTags[i];
+            var isSelected = state.selectedMembers.indexOf(t) > -1;
+            var isMatched = matchSet[t];
+
+            var extraClass = "";
+            if (isSelected && isMatched) {
+                // 同时选中且匹配
+                extraClass = " match-selected";
+            } else if (isMatched) {
+                // 匹配但未选中
+                extraClass = " match-highlight";
+            } else if (!isSelected) {
+                // 未匹配未选中
+                extraClass = " match-none";
+            }
+
+            html += "<div class=\"tag-btn" + (isSelected ? " active" : "") + extraClass + "\" onclick=\"toggleMultiSelect(state.selectedMembers, '" + t.replace(/'/g, "\\'") + "', 'mg-tags', renderGroupTags)\">" + escapeHtml(t) + "</div>";
+        }
+        document.getElementById("mg-tags").innerHTML = html;
+        if (kw) filterTags('mg-tags', kw);
+    }
+
+    // 快速选中匹配的节点
+    function quickSelectMatched() {
+        if (advancedMatchState.lastMatchedTags.length === 0) return;
+
+        for (var i = 0; i < advancedMatchState.lastMatchedTags.length; i++) {
+            var tag = advancedMatchState.lastMatchedTags[i];
+            if (state.selectedMembers.indexOf(tag) === -1) {
+                state.selectedMembers.push(tag);
+            }
+        }
+        // 关闭高级面板
+        if (advancedMatchState.enabled) {
+            toggleAdvancedMatch();
+        }
+        renderGroupTags();
+    }
+
+    // 快速取消选中匹配的节点
+    function quickDeselectMatched() {
+        if (advancedMatchState.lastMatchedTags.length === 0) return;
+
+        for (var i = 0; i < advancedMatchState.lastMatchedTags.length; i++) {
+            var tag = advancedMatchState.lastMatchedTags[i];
+            var idx = state.selectedMembers.indexOf(tag);
+            if (idx > -1) {
+                state.selectedMembers.splice(idx, 1);
+            }
+        }
+        // 关闭高级面板
+        if (advancedMatchState.enabled) {
+            toggleAdvancedMatch();
+        }
+        renderGroupTags();
+    }
+
+    function openProxyPoolModal() {
+        removedProxies = [];
+        renderProxyPool();
+        document.getElementById("modal-proxy-pool").style.display = "block";
+    }
+
+    function renderProxyPool(f) {
+        if (f === undefined) f = "";
+        var list = [];
+        for (var i = 0; i < state.proxyTags.length; i++) {
+            var t = state.proxyTags[i];
+            if (t.toLowerCase().indexOf(f.toLowerCase()) > -1 && removedProxies.indexOf(t) === -1) {
+                list.push(t);
+            }
+        }
+        document.getElementById("proxy-count").innerText = "共 " + list.length + " 个节点";
+        var html = "";
+        for (var i = 0; i < list.length; i++) {
+            var t = list[i];
+            html += "<div class=\"proxy-item\"><span>" + escapeHtml(t) + "</span><button class=\"cbi-button cbi-button-reset\" onclick=\"removedProxies.push('" + t.replace(/'/g, "\\'") + "');renderProxyPool()\">移除</button></div>";
+        }
+        document.getElementById("proxy-pool-list").innerHTML = html;
+    }
+
+    async function saveProxyPool() {
+        if (removedProxies.length > 0) {
+            await fetchApi("proxies_remove", {tags: removedProxies});
+            await refreshData();
+        }
+        closeModal();
+    }
+
+    async function deleteItem(type, i) {
+        if (!confirm("确定删除?")) return;
+        if (type === 'group') {
+            state.groups.splice(i, 1);
+            await fetchApi("groups_set", {groups: state.groups});
+        } else {
+            state.rulesUI.splice(i, 1);
+            await fetchApi("rules_ui_set", {rules: state.rulesUI});
+        }
+        renderTables();
+    }
+
+    // ==========================================================================
+    // 拖动排序功能
+    // ==========================================================================
+    function initDragSort() {
+        var tbody = document.querySelector("#rule-table tbody");
+        if (!tbody) return;
+
+        var rows = tbody.querySelectorAll("tr[draggable='true']");
+        var draggedRow = null;
+
+        rows.forEach(function (row) {
+            // 拖动手柄事件
+            var handle = row.querySelector(".drag-handle");
+            if (handle) {
+                handle.addEventListener("mousedown", function (e) {
+                    row.draggable = true;
+                });
+            }
+
+            row.addEventListener("dragstart", function (e) {
+                draggedRow = this;
+                this.classList.add("dragging");
+                e.dataTransfer.effectAllowed = "move";
+                e.dataTransfer.setData("text/html", this.innerHTML);
+            });
+
+            row.addEventListener("dragend", function (e) {
+                this.classList.remove("dragging");
+                // 移除所有 drag-over 样式
+                rows.forEach(function (r) {
+                    r.classList.remove("drag-over");
+                });
+                draggedRow = null;
+                // 恢复 draggable 状态
+                rows.forEach(function (r) {
+                    r.draggable = false;
+                });
+            });
+
+            row.addEventListener("dragover", function (e) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = "move";
+
+                if (this !== draggedRow) {
+                    // 移除所有 drag-over
+                    rows.forEach(function (r) {
+                        r.classList.remove("drag-over");
+                    });
+                    this.classList.add("drag-over");
+                }
+            });
+
+            row.addEventListener("dragleave", function (e) {
+                this.classList.remove("drag-over");
+            });
+
+            row.addEventListener("drop", function (e) {
+                e.stopPropagation();
+                e.preventDefault();
+
+                if (draggedRow !== this) {
+                    var allRows = Array.from(tbody.querySelectorAll("tr"));
+                    var draggedIndex = allRows.indexOf(draggedRow);
+                    var targetIndex = allRows.indexOf(this);
+
+                    if (draggedIndex > -1 && targetIndex > -1) {
+                        // 更新 state.rulesUI 数组
+                        var movedItem = state.rulesUI.splice(draggedIndex, 1)[0];
+                        state.rulesUI.splice(targetIndex, 0, movedItem);
+
+                        // 保存到后端
+                        fetchApi("rules_ui_set", {rules: state.rulesUI});
+
+                        // 重新渲染表格
+                        renderTables();
+                    }
+                }
+
+                return false;
+            });
+
+            // 默认不可拖动，只有点击手柄才能拖动
+            row.draggable = false;
+        });
+    }
+
+    // ==========================================================================
+    // 备份功能
+    // ==========================================================================
+    function downloadBackup() {
+        window.location.href = "/cgi-bin/luci/admin/services/nanoswift/config_backup_download";
+    }
+
+    function onRestoreFileChange() {
+        var fileInput = document.getElementById("restore-file");
+        var restoreBtn = document.getElementById("restore-btn");
+        if (fileInput.files.length > 0) {
+            restoreBtn.disabled = false;
+        } else {
+            restoreBtn.disabled = true;
+        }
+    }
+
+    function submitRestoreForm() {
+        var fileInput = document.getElementById("restore-file");
+        var file = fileInput.files[0];
+        if (!file) {
+            alert("请先选择一个备份文件 (.tar.gz)");
+            return;
+        }
+        if (!confirm("确定要导入备份吗？\n\n这将覆盖当前配置文件 /etc/nanoswift/configure.json\n并清空后恢复 /etc/nanoswift/static/ 目录\n\n此操作不可逆！")) {
+            return;
+        }
+        document.getElementById("restore-form").submit();
+    }
+
+    async function restoreBackup() {
+        var fileInput = document.getElementById("restore-file");
+        var file = fileInput.files[0];
+        if (!file) {
+            alert("请先选择一个备份文件 (.tar.gz)");
+            return;
+        }
+        if (!confirm("确定要导入备份吗？\n\n这将覆盖当前配置文件 /etc/nanoswift/configure.json\n并清空后恢复 /etc/nanoswift/static/ 目录\n\n此操作不可逆！")) {
+            return;
+        }
+        var formData = new FormData();
+        formData.append("backup_file", file);
+        try {
+            var response = await fetch("/cgi-bin/luci/admin/services/nanoswift/config_backup_restore", {
+                method: "POST",
+                body: formData
+            });
+            var result = await response.json();
+            if (result.ok) {
+                alert(result.msg || "备份恢复成功！");
+                refreshData();
+            } else {
+                alert("恢复失败: " + (result.msg || "未知错误"));
+            }
+        } catch (e) {
+            alert("恢复失败: " + e);
+        }
+    }
+
+    // ==========================================================================
+    // CFNAT 相关功能
+    // ==========================================================================
+    async function loadCfnatSettings() {
+        try {
+            var data = await fetchApi("cfnat_settings_get");
+            document.getElementById("cfnat-enabled").checked = (data.enabled === "1" || data.enabled === true);
+            document.getElementById("cfnat-addr").value = data.addr || "127.0.0.1:2345";
+            document.getElementById("cfnat-colo").value = (data.colo || "NRT|SIN|HKG").toUpperCase();
+            document.getElementById("cfnat-delay").value = data.delay || "300";
+            document.getElementById("cfnat-ipnum").value = data.ipnum || "20";
+            document.getElementById("cfnat-ips").value = data.ips || "4";
+            document.getElementById("cfnat-ipstart").value = data.ipstart || "162.159,172.64,104.18,104.19,104.16";
+            document.getElementById("cfnat-log-level").value = data.log_level || "info";
+            document.getElementById("cfnat-num").value = data.num || "5";
+            document.getElementById("cfnat-port").value = data.port || "443";
+            document.getElementById("cfnat-http-port").value = data.http_port || "80";
+            document.getElementById("cfnat-random").checked = (data.random === "true" || data.random === true);
+            document.getElementById("cfnat-baidu-proxy").checked = (data.baidu_proxy === "true" || data.baidu_proxy === true);
+            document.getElementById("cfnat-task").value = data.task || "300";
+            document.getElementById("cfnat-carrier-listens").value = data.carrier_listens || "";
+            document.getElementById("cfnat-workdir").value = data.workdir || "/etc/nanoswift/run";
+
+            var statusEl = document.getElementById("cfnat-status");
+            if (data.running) {
+                statusEl.innerHTML = '<span style="color: green;">\u25CF 运行中</span>';
+            } else {
+                statusEl.innerHTML = '<span style="color: red;">\u25CF 已停止</span>';
+            }
+        } catch (e) {
+            console.error("Load CFNAT settings failed:", e);
+        }
+    }
+
+
+    async function refreshCfnatStatus() {
+        try {
+            var data = await fetchApi("cfnat_settings_get");
+            var statusEl = document.getElementById("cfnat-status");
+            if (statusEl && data) {
+                if (data.running) {
+                    statusEl.innerHTML = '<span style="color: green;">\u25CF 运行中</span>';
+                } else {
+                    statusEl.innerHTML = '<span style="color: red;">\u25CF 已停止</span>';
+                }
+            }
+        } catch (e) {
+            console.error("Refresh CFNAT status failed:", e);
+        }
+    }
+
+    async function checkClashApiStatus() {
+        try {
+            var response = await fetchApi("singbox_status");
+
+            var statusEl = document.getElementById("clash-api-status");
+            if (response && response.running) {
+                statusEl.innerHTML = '<span style="color: green;">● 运行中</span>';
+            } else {
+                statusEl.innerHTML = '<span style="color: red;">● 停止中</span>';
+            }
+        } catch (e) {
+            var statusEl = document.getElementById("clash-api-status");
+            if (statusEl) {
+                statusEl.innerHTML = '<span style="color: red;">● 停止中</span>';
+            }
+        }
+    }
+
+    async function saveCfnatSettings() {
+        try {
+            await fetchApi("cfnat_settings_set", {
+                enabled: document.getElementById("cfnat-enabled").checked,
+                addr: document.getElementById("cfnat-addr").value,
+                colo: document.getElementById("cfnat-colo").value.toUpperCase(),
+                delay: document.getElementById("cfnat-delay").value,
+                ipnum: document.getElementById("cfnat-ipnum").value,
+                ips: document.getElementById("cfnat-ips").value,
+                ipstart: document.getElementById("cfnat-ipstart").value,
+                log_level: document.getElementById("cfnat-log-level").value,
+                num: document.getElementById("cfnat-num").value,
+                port: document.getElementById("cfnat-port").value,
+                http_port: document.getElementById("cfnat-http-port").value,
+                random: document.getElementById("cfnat-random").checked,
+                baidu_proxy: document.getElementById("cfnat-baidu-proxy").checked,
+                task: document.getElementById("cfnat-task").value,
+                carrier_listens: document.getElementById("cfnat-carrier-listens").value,
+                workdir: document.getElementById("cfnat-workdir").value
+            });
+            refreshCfnatStatus();
+        } catch (e) {
+            console.error("Save CFNAT settings failed:", e);
+        }
+    }
+</script>
+
+<%+footer%>

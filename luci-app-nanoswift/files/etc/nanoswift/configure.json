@@ -1,0 +1,55 @@
+{
+  "service": {
+    "singbox_bin": "\/usr\/bin\/sing-box",
+    "clash_secret": "12345678",
+    "clash-port": "9090",
+    "work_dir": "\/etc\/nanoswift\/run",
+    "srs_bin": "\/usr\/bin\/srs",
+    "srs_update_enabled": true,
+    "rules_path": "\/etc\/nanoswift\/rules\/",
+    "srs_cron": "0 4 * * *",
+    "delay": 10,
+    "enabled": true
+  },
+  "subscriptions": {
+    "clash": [],
+    "v2ray": [],
+    "singbox_nodes": ""
+  },
+  "groups": [
+    {
+      "type": "selector",
+      "members": [],
+      "tag": "免费节点"
+    },
+    {
+      "type": "selector",
+      "members": [],
+      "tag": "付费节点"
+    }
+  ],
+  "rules": [
+    {
+      "rule": "geosite-openai.srs,geosite-google-gemini.srs,geoip-ai.srs,geosite-bing.srs,geosite-xai.srs",
+      "outbound": "付费节点"
+    },
+    {
+      "rule": "geoip-google.srs,geosite-google.srs,geoip-facebook.srs,geosite-facebook.srs,geosite-facebook-dev.srs,geoip-netflix.srs,geosite-netflix.srs,geosite-twitter.srs,geosite-xai.srs,geosite-youtube.srs,geoip-twitter.srs",
+      "outbound": "免费节点"
+    },
+    {
+      "outbound": "付费节点",
+      "rule": "geosite-github.srs"
+    },
+    {
+      "outbound": "reject",
+      "rule": "\"stun\",\"turnstyle\",\"webrtc\"",
+      "rule_type": "domain_keyword"
+    },
+    {
+      "outbound": "reject",
+      "rule": "\"stun.l.google.com\",\"stun1.l.google.com\",\"stun2.l.google.com\",\"stun3.l.google.com\",\"stun4.l.google.com\"",
+      "rule_type": "domain_suffix"
+    }
+  ]
+}

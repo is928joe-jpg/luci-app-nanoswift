@@ -1,0 +1,26 @@
+commit.sh
+cmd.txt
+*.backup
+sdk_list_full.json
+setup-git-ssh.sh
+
+# 编译产物
+*.o
+*.ipk
+bin/
+build_dir/
+staging_dir/
+
+# 临时文件
+*.swp
+*.swo
+*~
+.DS_Store
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 配置文件（如果需要排除）
+# config.json
+# .env

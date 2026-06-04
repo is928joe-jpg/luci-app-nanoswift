@@ -1,0 +1,95 @@
+#!/bin/sh /etc/rc.common
+
+USE_PROCD=1
+START=99
+STOP=10
+
+PROG="cfnat"
+
+start_service() {
+    config_load "cfnat"
+    
+    local enabled
+    config_get_bool enabled "main" "enabled" "0"
+    [ "$enabled" -eq "1" ] || return 0
+    
+    local bindir workdir
+    config_get bindir "main" "bindir" "/usr/bin"
+    config_get workdir "main" "workdir" "/etc/nanoswift/run"
+
+    PROG="${bindir}/${PROG}"
+    
+    [ -x "$PROG" ] || {
+        logger -t "cfnat" "ERROR: $PROG not executable"
+        return 1
+    }
+    
+    # 先创建 workdir
+    mkdir -p "$workdir" 2>/dev/null
+    
+    local args="-D=$workdir"
+    
+    local val
+    config_get val "main" "addr" "127.0.0.1:2345"
+    [ -n "$val" ] && args="$args -addr=$val"
+    
+    config_get val "main" "colo" "nrt"
+    [ -n "$val" ] && args="$args -colo=$val"
+    
+    config_get val "main" "delay" "300"
+    [ -n "$val" ] && args="$args -delay=$val"
+    
+    config_get val "main" "ipnum" "20"
+    [ -n "$val" ] && args="$args -ipnum=$val"
+    
+    config_get val "main" "ips" "4"
+    [ -n "$val" ] && args="$args -ips=$val"
+    
+    config_get val "main" "ipstart" ""
+    [ -n "$val" ] && args="$args -ipstart=$val"
+    
+    config_get val "main" "log_level" "info"
+    [ -n "$val" ] && args="$args -log=$val"
+    
+    config_get val "main" "num" "5"
+    [ -n "$val" ] && args="$args -num=$val"
+    
+    config_get val "main" "port" "443"
+    [ -n "$val" ] && args="$args -port=$val"
+    
+    config_get val "main" "http_port" "80"
+    [ -n "$val" ] && args="$args -http-port=$val"
+    
+    local random_val
+    config_get_bool random_val "main" "random" "1"
+    args="$args -random=$random_val"
+    
+    local baidu_proxy_val
+    config_get_bool baidu_proxy_val "main" "baidu_proxy" "0"
+    args="$args -baidu-proxy=$baidu_proxy_val"
+    
+    config_get val "main" "carrier_listens" ""
+    [ -n "$val" ] && args="$args -carrier-listens=$val"
+    
+    config_get val "main" "task" "500"
+    [ -n "$val" ] && args="$args -task=$val"
+    
+    procd_open_instance
+    procd_set_param command "$PROG" $args
+    procd_set_param respawn
+    procd_set_param stdout 1
+    procd_set_param stderr 1
+    procd_set_param pidfile "/var/run/${PROG##*/}.pid"
+    
+    procd_close_instance
+    
+    logger -t "cfnat" "Starting with workdir=$workdir args=$args"
+}
+
+service_triggers() {
+    procd_add_reload_trigger "cfnat"
+}
+
+stop_service() {
+    logger -t "cfnat" "Stopping..."
+}
