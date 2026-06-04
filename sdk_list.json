@@ -318,5 +318,381 @@
     {
         "name": "zynq-generic",
         "url": "https://downloads.openwrt.org/releases/23.05.0/targets/zynq/generic/openwrt-sdk-23.05.0-zynq-generic_gcc-12.3.0_musl_eabi.Linux-x86_64.tar.xz"
+    },
+    {
+        "name": "apm821xx-nand",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/apm821xx/nand/openwrt-sdk-25.12.0-apm821xx-nand_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "apm821xx-sata",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/apm821xx/sata/openwrt-sdk-25.12.0-apm821xx-sata_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "armsr-armv7",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/armsr/armv7/openwrt-sdk-25.12.0-armsr-armv7_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "armsr-armv8",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/armsr/armv8/openwrt-sdk-25.12.0-armsr-armv8_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "at91-sam9x",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/at91/sam9x/openwrt-sdk-25.12.0-at91-sam9x_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "at91-sama5",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/at91/sama5/openwrt-sdk-25.12.0-at91-sama5_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "at91-sama7",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/at91/sama7/openwrt-sdk-25.12.0-at91-sama7_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "ath79-generic",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/ath79/generic/openwrt-sdk-25.12.0-ath79-generic_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "ath79-mikrotik",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/ath79/mikrotik/openwrt-sdk-25.12.0-ath79-mikrotik_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "ath79-nand",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/ath79/nand/openwrt-sdk-25.12.0-ath79-nand_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "ath79-tiny",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/ath79/tiny/openwrt-sdk-25.12.0-ath79-tiny_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "bcm27xx-bcm2708",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/bcm27xx/bcm2708/openwrt-sdk-25.12.0-bcm27xx-bcm2708_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "bcm27xx-bcm2709",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/bcm27xx/bcm2709/openwrt-sdk-25.12.0-bcm27xx-bcm2709_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "bcm27xx-bcm2710",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/bcm27xx/bcm2710/openwrt-sdk-25.12.0-bcm27xx-bcm2710_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "bcm27xx-bcm2711",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/bcm27xx/bcm2711/openwrt-sdk-25.12.0-bcm27xx-bcm2711_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "bcm27xx-bcm2712",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/bcm27xx/bcm2712/openwrt-sdk-25.12.0-bcm27xx-bcm2712_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "bcm47xx-generic",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/bcm47xx/generic/openwrt-sdk-25.12.0-bcm47xx-generic_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "bcm47xx-legacy",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/bcm47xx/legacy/openwrt-sdk-25.12.0-bcm47xx-legacy_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "bcm47xx-mips74k",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/bcm47xx/mips74k/openwrt-sdk-25.12.0-bcm47xx-mips74k_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "bcm4908-generic",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/bcm4908/generic/openwrt-sdk-25.12.0-bcm4908-generic_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "bcm53xx-generic",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/bcm53xx/generic/openwrt-sdk-25.12.0-bcm53xx-generic_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "bmips-bcm6318",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/bmips/bcm6318/openwrt-sdk-25.12.0-bmips-bcm6318_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "bmips-bcm63268",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/bmips/bcm63268/openwrt-sdk-25.12.0-bmips-bcm63268_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "bmips-bcm6328",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/bmips/bcm6328/openwrt-sdk-25.12.0-bmips-bcm6328_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "bmips-bcm6358",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/bmips/bcm6358/openwrt-sdk-25.12.0-bmips-bcm6358_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "bmips-bcm6362",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/bmips/bcm6362/openwrt-sdk-25.12.0-bmips-bcm6362_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "bmips-bcm6368",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/bmips/bcm6368/openwrt-sdk-25.12.0-bmips-bcm6368_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "d1-generic",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/d1/generic/openwrt-sdk-25.12.0-d1-generic_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "gemini-generic",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/gemini/generic/openwrt-sdk-25.12.0-gemini-generic_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "imx-cortexa53",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/imx/cortexa53/openwrt-sdk-25.12.0-imx-cortexa53_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "imx-cortexa7",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/imx/cortexa7/openwrt-sdk-25.12.0-imx-cortexa7_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "imx-cortexa9",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/imx/cortexa9/openwrt-sdk-25.12.0-imx-cortexa9_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "ipq40xx-chromium",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/ipq40xx/chromium/openwrt-sdk-25.12.0-ipq40xx-chromium_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "ipq40xx-generic",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/ipq40xx/generic/openwrt-sdk-25.12.0-ipq40xx-generic_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "ipq40xx-mikrotik",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/ipq40xx/mikrotik/openwrt-sdk-25.12.0-ipq40xx-mikrotik_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "ipq806x-chromium",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/ipq806x/chromium/openwrt-sdk-25.12.0-ipq806x-chromium_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "ipq806x-generic",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/ipq806x/generic/openwrt-sdk-25.12.0-ipq806x-generic_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "ixp4xx-generic",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/ixp4xx/generic/openwrt-sdk-25.12.0-ixp4xx-generic_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "kirkwood-generic",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/kirkwood/generic/openwrt-sdk-25.12.0-kirkwood-generic_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "lantiq-xrx200",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/lantiq/xrx200/openwrt-sdk-25.12.0-lantiq-xrx200_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "lantiq-xrx200_legacy",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/lantiq/xrx200_legacy/openwrt-sdk-25.12.0-lantiq-xrx200_legacy_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "lantiq-xway",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/lantiq/xway/openwrt-sdk-25.12.0-lantiq-xway_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "layerscape-armv7",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/layerscape/armv7/openwrt-sdk-25.12.0-layerscape-armv7_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "layerscape-armv8_64b",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/layerscape/armv8_64b/openwrt-sdk-25.12.0-layerscape-armv8_64b_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "loongarch64-generic",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/loongarch64/generic/openwrt-sdk-25.12.0-loongarch64-generic_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "malta-be",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/malta/be/openwrt-sdk-25.12.0-malta-be_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "malta-be64",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/malta/be64/openwrt-sdk-25.12.0-malta-be64_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "malta-le",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/malta/le/openwrt-sdk-25.12.0-malta-le_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "malta-le64",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/malta/le64/openwrt-sdk-25.12.0-malta-le64_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "mediatek-filogic",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/mediatek/filogic/openwrt-sdk-25.12.0-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "mediatek-mt7622",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/mediatek/mt7622/openwrt-sdk-25.12.0-mediatek-mt7622_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "mediatek-mt7623",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/mediatek/mt7623/openwrt-sdk-25.12.0-mediatek-mt7623_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "mediatek-mt7629",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/mediatek/mt7629/openwrt-sdk-25.12.0-mediatek-mt7629_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "microchipsw-lan969x",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/microchipsw/lan969x/openwrt-sdk-25.12.0-microchipsw-lan969x_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "mpc85xx-p1010",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/mpc85xx/p1010/openwrt-sdk-25.12.0-mpc85xx-p1010_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "mpc85xx-p1020",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/mpc85xx/p1020/openwrt-sdk-25.12.0-mpc85xx-p1020_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "mpc85xx-p2020",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/mpc85xx/p2020/openwrt-sdk-25.12.0-mpc85xx-p2020_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "mvebu-cortexa53",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/mvebu/cortexa53/openwrt-sdk-25.12.0-mvebu-cortexa53_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "mvebu-cortexa72",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/mvebu/cortexa72/openwrt-sdk-25.12.0-mvebu-cortexa72_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "mvebu-cortexa9",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/mvebu/cortexa9/openwrt-sdk-25.12.0-mvebu-cortexa9_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "mxs-generic",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/mxs/generic/openwrt-sdk-25.12.0-mxs-generic_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "octeon-generic",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/octeon/generic/openwrt-sdk-25.12.0-octeon-generic_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "omap-generic",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/omap/generic/openwrt-sdk-25.12.0-omap-generic_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "pistachio-generic",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/pistachio/generic/openwrt-sdk-25.12.0-pistachio-generic_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "qoriq-generic",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/qoriq/generic/openwrt-sdk-25.12.0-qoriq-generic_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "qualcommax-ipq50xx",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/qualcommax/ipq50xx/openwrt-sdk-25.12.0-qualcommax-ipq50xx_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "qualcommax-ipq60xx",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/qualcommax/ipq60xx/openwrt-sdk-25.12.0-qualcommax-ipq60xx_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "qualcommax-ipq807x",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/qualcommax/ipq807x/openwrt-sdk-25.12.0-qualcommax-ipq807x_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "ramips-mt7620",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/ramips/mt7620/openwrt-sdk-25.12.0-ramips-mt7620_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "ramips-mt7621",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/ramips/mt7621/openwrt-sdk-25.12.0-ramips-mt7621_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "ramips-mt76x8",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/ramips/mt76x8/openwrt-sdk-25.12.0-ramips-mt76x8_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "ramips-rt305x",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/ramips/rt305x/openwrt-sdk-25.12.0-ramips-rt305x_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "ramips-rt3883",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/ramips/rt3883/openwrt-sdk-25.12.0-ramips-rt3883_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "realtek-rtl838x",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/realtek/rtl838x/openwrt-sdk-25.12.0-realtek-rtl838x_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "realtek-rtl839x",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/realtek/rtl839x/openwrt-sdk-25.12.0-realtek-rtl839x_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "realtek-rtl930x",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/realtek/rtl930x/openwrt-sdk-25.12.0-realtek-rtl930x_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "realtek-rtl930x_nand",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/realtek/rtl930x_nand/openwrt-sdk-25.12.0-realtek-rtl930x_nand_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "realtek-rtl931x",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/realtek/rtl931x/openwrt-sdk-25.12.0-realtek-rtl931x_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "realtek-rtl931x_nand",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/realtek/rtl931x_nand/openwrt-sdk-25.12.0-realtek-rtl931x_nand_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "rockchip-armv8",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/rockchip/armv8/openwrt-sdk-25.12.0-rockchip-armv8_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "sifiveu-generic",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/sifiveu/generic/openwrt-sdk-25.12.0-sifiveu-generic_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "siflower-sf21",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/siflower/sf21/openwrt-sdk-25.12.0-siflower-sf21_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "starfive-generic",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/starfive/generic/openwrt-sdk-25.12.0-starfive-generic_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "stm32-stm32mp1",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/stm32/stm32mp1/openwrt-sdk-25.12.0-stm32-stm32mp1_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "sunxi-arm926ejs",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/sunxi/arm926ejs/openwrt-sdk-25.12.0-sunxi-arm926ejs_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "sunxi-cortexa53",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/sunxi/cortexa53/openwrt-sdk-25.12.0-sunxi-cortexa53_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "sunxi-cortexa7",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/sunxi/cortexa7/openwrt-sdk-25.12.0-sunxi-cortexa7_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "sunxi-cortexa8",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/sunxi/cortexa8/openwrt-sdk-25.12.0-sunxi-cortexa8_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "tegra-generic",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/tegra/generic/openwrt-sdk-25.12.0-tegra-generic_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "x86-64",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/x86/64/openwrt-sdk-25.12.0-x86-64_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "x86-generic",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/x86/generic/openwrt-sdk-25.12.0-x86-generic_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "x86-geode",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/x86/geode/openwrt-sdk-25.12.0-x86-geode_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "x86-legacy",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/x86/legacy/openwrt-sdk-25.12.0-x86-legacy_gcc-14.3.0_musl.Linux-x86_64.tar.zst"
+    },
+    {
+        "name": "zynq-generic",
+        "url": "https://downloads.openwrt.org/releases/25.12.0/targets/zynq/generic/openwrt-sdk-25.12.0-zynq-generic_gcc-14.3.0_musl_eabi.Linux-x86_64.tar.zst"
     }
-]
+]    
