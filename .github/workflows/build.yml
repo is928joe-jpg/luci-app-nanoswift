@@ -1,4 +1,4 @@
-name: Build NanoSwift IPK
+name: Build NanoSwift IPK/APK
 
 permissions:
   contents: write
@@ -12,43 +12,53 @@ jobs:
   prepare:
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      matrix_23: ${{ steps.set-matrix.outputs.matrix_23 }}
+      matrix_25: ${{ steps.set-matrix.outputs.matrix_25 }}
     steps:
       - uses: actions/checkout@v4
 
       - id: set-matrix
         run: |
-          MATRIX=$(jq -c '
-            [range(0; length; 8) as $i | .[$i:$i+8]]
-          ' sdk_list.json)
+          # 按版本分组并排序
+          SDK_23=$(jq -c '[.[] | select(.url | contains("23.05"))] | sort_by(.name)' sdk_list.json)
+          SDK_25=$(jq -c '[.[] | select(.url | contains("25."))] | sort_by(.name)' sdk_list.json)
 
-          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+          # 23.05: 76 个目标，每组 10 个 → 8 个 shard
+          MATRIX_23=$(echo "$SDK_23" | jq -c '[range(0; length; 10) as $i | .[$i:$i+10]]')
+          
+          # 25.xx: ~70 个目标，每组 10 个 → 7 个 shard
+          MATRIX_25=$(echo "$SDK_25" | jq -c '[range(0; length; 10) as $i | .[$i:$i+10]]')
 
-  build:
+          echo "matrix_23=$MATRIX_23" >> $GITHUB_OUTPUT
+          echo "matrix_25=$MATRIX_25" >> $GITHUB_OUTPUT
+
+          echo "23.05 targets: $(echo "$SDK_23" | jq length)"
+          echo "25.xx targets: $(echo "$SDK_25" | jq length)"
+
+  build-23:
     needs: prepare
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        shard: ${{ fromJson(needs.prepare.outputs.matrix) }}
+        shard: ${{ fromJson(needs.prepare.outputs.matrix_23) }}
 
     steps:
       - uses: actions/checkout@v4
 
-      # ⭐ 每个 shard 独立缓存 key（你要求的版本）
       - uses: actions/cache@v4
         with:
           path: ~/.cache/openwrt-sdk
-          key: sdk-${{ hashFiles('sdk_list.json') }}-${{ strategy.job-index }}
+          key: sdk-23-${{ hashFiles('sdk_list.json') }}-${{ strategy.job-index }}
           restore-keys: |
-            sdk-${{ hashFiles('sdk_list.json') }}-
+            sdk-23-${{ hashFiles('sdk_list.json') }}-
 
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install -y build-essential xz-utils jq wget
+          sudo apt install -y build-essential xz-utils jq wget zstd
 
-      - name: Build SDK shard
+      - name: Build 23.05 SDK shard
         run: |
           mkdir -p output
           WORKSPACE=$(pwd)
@@ -58,7 +68,7 @@ jobs:
             NAME=$(echo "$item" | jq -r '.name')
             URL=$(echo "$item" | jq -r '.url')
 
-            echo "=== Building for $NAME ==="
+            echo "=== [23.05] Building for $NAME ==="
 
             CACHE_DIR="$HOME/.cache/openwrt-sdk/$NAME"
             mkdir -p "$CACHE_DIR"
@@ -87,14 +97,20 @@ jobs:
             sed -i '/src-git luci /d' feeds.conf.default
             sed -i '/src-git packages /d' feeds.conf.default
 
-            echo "src-git luci https://github.com/openwrt/luci.git;openwrt-23.05" >> feeds.conf.default
-            echo "src-git packages https://github.com/openwrt/packages.git;openwrt-23.05" >> feeds.conf.default
+            BRANCH=$(grep -oP 'openwrt-sdk-\K[0-9]+\.[0-9]+' <<< "$SDK_DIR")
+            if [ "$BRANCH" = "23.05" ]; then
+              FEED_BRANCH="openwrt-23.05"
+            else
+              FEED_BRANCH="openwrt-25.05"
+            fi
+
+            echo "src-git luci https://github.com/openwrt/luci.git;$FEED_BRANCH" >> feeds.conf.default
+            echo "src-git packages https://github.com/openwrt/packages.git;$FEED_BRANCH" >> feeds.conf.default
 
             retry() {
               local n=0
               local try=5
-              until [ $n -ge $try ]
-              do
+              until [ $n -ge $try ]; do
                 "$@" && break
                 n=$((n+1))
                 echo "Retry $n/$try..."
@@ -114,29 +130,142 @@ jobs:
 
             make package/$PKG_NAME/compile -j$(nproc) V=s ARCH_NAME="$NAME" 2>&1 | tail -5
 
-            IPK=$(find bin/packages -name "${PKG_NAME}*.ipk" | head -1)
-            if [ -n "$IPK" ]; then
-              cp "$IPK" "$WORKSPACE/output/"
-              echo "[OK] $NAME"
-            else
-              echo "[FAIL] $NAME - build error"
-            fi
+            find bin/packages -name "${PKG_NAME}*.ipk" -exec cp {} "$WORKSPACE/output/" \;
+            find bin/packages -name "${PKG_NAME}*.apk" -exec cp {} "$WORKSPACE/output/" \;
 
             cd "$WORKSPACE"
             rm -rf "$TMP_DIR"
           done
 
-          echo "=== Shard complete ==="
+          echo "=== [23.05] Shard complete ==="
           ls -la output/
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ipks-shard-${{ strategy.job-index }}
-          path: output/*.ipk
+          name: ipks-23-shard-${{ strategy.job-index }}
+          path: |
+            output/*.ipk
+            output/*.apk
+
+  build-25:
+    needs: prepare
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJson(needs.prepare.outputs.matrix_25) }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/openwrt-sdk-25
+          key: sdk-25-${{ hashFiles('sdk_list.json') }}-${{ strategy.job-index }}
+          restore-keys: |
+            sdk-25-${{ hashFiles('sdk_list.json') }}-
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y build-essential xz-utils jq wget zstd
+
+      - name: Build 25.xx SDK shard
+        run: |
+          mkdir -p output
+          WORKSPACE=$(pwd)
+          PKG_NAME="luci-app-nanoswift"
+
+          echo '${{ toJson(matrix.shard) }}' | jq -c '.[]' | while read item; do
+            NAME=$(echo "$item" | jq -r '.name')
+            URL=$(echo "$item" | jq -r '.url')
+
+            echo "=== [25.xx] Building for $NAME ==="
+
+            CACHE_DIR="$HOME/.cache/openwrt-sdk-25/$NAME"
+            mkdir -p "$CACHE_DIR"
+            SDK_TAR="$CACHE_DIR/sdk.tar.zst"
+
+            if [ -f "$SDK_TAR" ]; then
+              echo "[CACHE HIT] $NAME"
+            else
+              echo "[CACHE MISS] $NAME"
+              wget -q "$URL" -O "$SDK_TAR.tmp" || { echo "[FAIL] $NAME - download error"; continue; }
+              mv "$SDK_TAR.tmp" "$SDK_TAR"
+            fi
+
+            TMP_DIR=$(mktemp -d)
+            cd "$TMP_DIR"
+            
+            # 25.xx 使用 zstd 压缩
+            zstd -d "$SDK_TAR" -o sdk.tar
+            tar -xf sdk.tar
+
+            SDK_DIR=$(ls -d openwrt-sdk-* | head -1)
+
+            mkdir -p "$SDK_DIR/package/$PKG_NAME"
+            cp -r "$WORKSPACE/$PKG_NAME"/* "$SDK_DIR/package/$PKG_NAME/"
+
+            cd "$SDK_DIR"
+
+            echo "=== Fixing feeds ==="
+            sed -i '/src-git luci /d' feeds.conf.default
+            sed -i '/src-git packages /d' feeds.conf.default
+
+            BRANCH=$(grep -oP 'openwrt-sdk-\K[0-9]+\.[0-9]+' <<< "$SDK_DIR")
+            if [ "$BRANCH" = "23.05" ]; then
+              FEED_BRANCH="openwrt-23.05"
+            else
+              FEED_BRANCH="openwrt-25.05"
+            fi
+
+            echo "src-git luci https://github.com/openwrt/luci.git;$FEED_BRANCH" >> feeds.conf.default
+            echo "src-git packages https://github.com/openwrt/packages.git;$FEED_BRANCH" >> feeds.conf.default
+
+            retry() {
+              local n=0
+              local try=5
+              until [ $n -ge $try ]; do
+                "$@" && break
+                n=$((n+1))
+                echo "Retry $n/$try..."
+                sleep 3
+              done
+              [ $n -lt $try ]
+            }
+
+            echo "=== Updating feeds with retry ==="
+            retry ./scripts/feeds update luci -f --depth=1 || { echo "FATAL: luci feed failed"; exit 1; }
+            retry ./scripts/feeds update packages -f --depth=1 || { echo "FATAL: packages feed failed"; exit 1; }
+
+            ./scripts/feeds install -a
+
+            touch .config
+            make defconfig 2>/dev/null
+
+            make package/$PKG_NAME/compile -j$(nproc) V=s ARCH_NAME="$NAME" 2>&1 | tail -5
+
+            find bin/packages -name "${PKG_NAME}*.ipk" -exec cp {} "$WORKSPACE/output/" \;
+            find bin/packages -name "${PKG_NAME}*.apk" -exec cp {} "$WORKSPACE/output/" \;
+
+            cd "$WORKSPACE"
+            rm -rf "$TMP_DIR"
+          done
+
+          echo "=== [25.xx] Shard complete ==="
+          ls -la output/
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ipks-25-shard-${{ strategy.job-index }}
+          path: |
+            output/*.ipk
+            output/*.apk
 
   release:
-    needs: build
+    needs: [build-23, build-25]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
     steps:
@@ -145,8 +274,8 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          path: all-ipks
-          pattern: ipks-shard-*
+          path: all-packages
+          pattern: ipks-*
           merge-multiple: true
 
       - name: Generate version tag
@@ -173,7 +302,9 @@ jobs:
         with:
           tag_name: ${{ steps.version.outputs.tag }}
           name: Release ${{ steps.version.outputs.tag }}
-          files: all-ipks/*.ipk
+          files: |
+            all-packages/*.ipk
+            all-packages/*.apk
           fail_on_unmatched_files: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

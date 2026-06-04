@@ -1,5 +1,6 @@
 commit.sh
 cmd.txt
+git.html
 *.backup
 sdk_list_full.json
 setup-git-ssh.sh
@@ -24,4 +25,14 @@ Thumbs.db
 
 # 配置文件（如果需要排除）
 # config.json
-# .env
+.env
+
+# Android/APK 相关文件
+*.apk
+*.aab
+local.properties
+*.keystore
+*.jks
+apk-project/build/
+apk-project/app/build/
+apk-project/.gradle/

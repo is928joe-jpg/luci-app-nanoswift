@@ -21,6 +21,7 @@ endef
 define Package/luci-app-nanoswift/postinst
 #!/bin/sh
 [ -n "$$IPKG_INSTROOT" ] || /usr/bin/srs || true
+[ -n "$$IPKG_INSTROOT" ] || /etc/init.d/cfnat enable 2>/dev/null || true
 [ -n "$$IPKG_INSTROOT" ] || /etc/init.d/sing-box enable 2>/dev/null || true
 printf "%s\n" "opkg install luci-app-nanoswift finished!"
 exit 0
