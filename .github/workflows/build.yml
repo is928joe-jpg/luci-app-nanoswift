@@ -23,10 +23,7 @@ jobs:
           SDK_23=$(jq -c '[.[] | select(.url | contains("23.05"))] | sort_by(.name)' sdk_list.json)
           SDK_25=$(jq -c '[.[] | select(.url | contains("25."))] | sort_by(.name)' sdk_list.json)
 
-          # 23.05: 76 个目标，每组 10 个 → 8 个 shard
           MATRIX_23=$(echo "$SDK_23" | jq -c '[range(0; length; 10) as $i | .[$i:$i+10]]')
-          
-          # 25.xx: ~70 个目标，每组 10 个 → 7 个 shard
           MATRIX_25=$(echo "$SDK_25" | jq -c '[range(0; length; 10) as $i | .[$i:$i+10]]')
 
           echo "matrix_23=$MATRIX_23" >> $GITHUB_OUTPUT
@@ -197,8 +194,7 @@ jobs:
 
             TMP_DIR=$(mktemp -d)
             cd "$TMP_DIR"
-            
-            # 25.xx 使用 zstd 压缩
+
             zstd -d "$SDK_TAR" -o sdk.tar
             tar -xf sdk.tar
 
@@ -209,37 +205,7 @@ jobs:
 
             cd "$SDK_DIR"
 
-            echo "=== Fixing feeds ==="
-            sed -i '/src-git luci /d' feeds.conf.default
-            sed -i '/src-git packages /d' feeds.conf.default
-
-            BRANCH=$(grep -oP 'openwrt-sdk-\K[0-9]+\.[0-9]+' <<< "$SDK_DIR")
-            if [ "$BRANCH" = "23.05" ]; then
-              FEED_BRANCH="openwrt-23.05"
-            else
-              FEED_BRANCH="openwrt-25.05"
-            fi
-
-            echo "src-git luci https://github.com/openwrt/luci.git;$FEED_BRANCH" >> feeds.conf.default
-            echo "src-git packages https://github.com/openwrt/packages.git;$FEED_BRANCH" >> feeds.conf.default
-
-            retry() {
-              local n=0
-              local try=5
-              until [ $n -ge $try ]; do
-                "$@" && break
-                n=$((n+1))
-                echo "Retry $n/$try..."
-                sleep 3
-              done
-              [ $n -lt $try ]
-            }
-
-            echo "=== Updating feeds with retry ==="
-            retry ./scripts/feeds update luci -f --depth=1 || { echo "FATAL: luci feed failed"; exit 1; }
-            retry ./scripts/feeds update packages -f --depth=1 || { echo "FATAL: packages feed failed"; exit 1; }
-
-            ./scripts/feeds install -a
+            echo "=== [25.xx] Skip feeds (LuCI removed in 25.x) ==="
 
             touch .config
             make defconfig 2>/dev/null
@@ -308,3 +274,4 @@ jobs:
           fail_on_unmatched_files: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
