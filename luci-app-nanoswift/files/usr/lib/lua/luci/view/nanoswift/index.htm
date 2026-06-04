@@ -158,7 +158,7 @@
         font-weight: bold;
         margin-bottom: 15px;
         color: var(--ns-text) !important;
-        border-bottom: 2px solid var(--ns-primary-dark);
+        /*border-bottom: 2px solid var(--ns-primary-dark);*/
         padding-bottom: 8px;
     }
 
@@ -271,6 +271,31 @@
         min-width: 180px;
         height: 36px;
         margin: 5px;
+    }
+
+    /* 停止服务按钮 - 红色主题 */
+    #stop-service-btn {
+        background-color: #dc3545 !important;
+        color: white !important;
+        border: none !important;
+    }
+
+    #stop-service-btn:hover:not(:disabled) {
+        background-color: #c82333 !important;
+    }
+
+    #stop-service-btn:disabled {
+        background-color: #6c757d !important;
+        color: #cccccc !important;
+        cursor: not-allowed !important;
+        opacity: 0.65 !important;
+    }
+
+    #reload-service-btn:disabled {
+        background-color: #6c757d !important;
+        color: #cccccc !important;
+        cursor: not-allowed !important;
+        opacity: 0.65 !important;
     }
 
     button:disabled {
@@ -542,6 +567,48 @@
         gap: 15px;
         flex-wrap: wrap;
     }
+
+    /* ==========================================================================
+       折叠面板样式
+       ========================================================================== */
+    .collapsible-title {
+        cursor: pointer;
+        user-select: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: none !important;
+    }
+
+    .collapsible-title:hover {
+        opacity: 0.85;
+    }
+
+    .collapse-icon {
+        display: inline-flex;
+        align-items: center;
+        transition: transform 0.3s ease;
+        width: 20px;
+        height: 20px;
+    }
+
+    .collapse-icon.collapsed {
+        transform: rotate(-90deg);
+    }
+
+    .collapsible-content {
+        transition: max-height 0.3s ease, opacity 0.3s ease;
+        overflow: hidden;
+    }
+
+    .collapsible-content.collapsed {
+        max-height: 0 !important;
+        opacity: 0;
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+    }
 </style>
 
 <div id="nanoswift-app">
@@ -566,7 +633,7 @@
                 <div class="path-input">
                     <label>mixed 端口:</label>
                     <input id="mixed-port" max="65535" min="1" onchange="saveServiceSettings()" style="width:80px;" type="number">
-                </div>                
+                </div>
                 <div class="path-input">
                     <label>Clash API 密钥:</label>
                     <input id="clash-secret" onchange="saveServiceSettings(); updateNodeManagementLink();" style="width:150px;" type="text">
@@ -713,10 +780,16 @@
 
     <!-- ==================== 订阅源设置 ==================== -->
     <div class="ns-section">
-        <div class="ns-title">订阅源设置</div>
-        <div class="sub-field">
-            <label>Sing-Box 节点 (直接粘贴 outbounds JSON):</label>
-            <textarea id="singbox-nodes" placeholder='{
+        <div class="ns-title collapsible-title" onclick="toggleCollapse('sub-content', this)" style="border-bottom: 2px solid var(--ns-primary-dark);">
+            <span>订阅源设置</span>
+            <svg class="collapse-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+        </div>
+        <div class="collapsible-content collapsed" id="sub-content" style="max-height: 800px;">
+            <div class="sub-field">
+                <label>Sing-Box 节点 (直接粘贴 outbounds JSON):</label>
+                <textarea id="singbox-nodes" placeholder='{
   "outbounds": [
     {
       "type": "vless",
@@ -724,11 +797,12 @@
     },...
   ]
 }' rows="5"></textarea>
+            </div>
+            <div class="sub-field"><label>V2Ray URI 列表:</label><textarea id="v2ray-subs" rows="5"></textarea></div>
+            <div class="sub-field"><label>Clash 订阅链接:</label><textarea id="clash-subs" rows="5"></textarea></div>
+            <button class="cbi-button cbi-button-apply action-btn" id="btn-convert" onclick="saveAndConvert()">保存订阅并更新节点池</button>
+            <button class="cbi-button cbi-button-apply action-btn" onclick="openProxyPoolModal()">查看节点池</button>
         </div>
-        <div class="sub-field"><label>V2Ray URI 列表:</label><textarea id="v2ray-subs" rows="5"></textarea></div>
-        <div class="sub-field"><label>Clash 订阅链接:</label><textarea id="clash-subs" rows="5"></textarea></div>
-        <button class="cbi-button cbi-button-apply action-btn" id="btn-convert" onclick="saveAndConvert()">保存订阅并更新节点池</button>
-        <button class="cbi-button cbi-button-apply action-btn" onclick="openProxyPoolModal()">查看节点池</button>
     </div>
 
     <!-- ==================== 节点组管理 ==================== -->
@@ -786,11 +860,13 @@
     </div>
 
     <div class="ns-section" style="text-align: center;">
-        <button class="cbi-button cbi-button-save action-btn" onclick="generateConfig()">应用配置</button>
+        <button class="cbi-button cbi-button-save action-btn" id="reload-service-btn" onclick="generateConfig()">重启服务</button>
+        <!--
         <span style="margin: 0 10px; color: #ccc;">&nbsp</span>
         <button class="cbi-button cbi-button-apply action-btn" id="restart-btn" onclick="serviceOp('restart')">重启服务</button>
+        -->
         <span style="margin: 0 10px; color: #ccc;">&nbsp</span>
-        <button class="cbi-button cbi-button-reset action-btn" onclick="serviceOp('stop')">停止服务</button>
+        <button class="cbi-button cbi-button-reset action-btn" id="stop-service-btn" onclick="serviceOp('stop')">停止服务</button>
     </div>
 </div>
 
@@ -937,6 +1013,21 @@
     }
 
     updateTheme();
+
+    function toggleCollapse(contentId, titleEl) {
+        var content = document.getElementById(contentId);
+        var icon = titleEl.querySelector('.collapse-icon');
+
+        if (content.classList.contains('collapsed')) {
+            // 展开
+            content.classList.remove('collapsed');
+            icon.classList.remove('collapsed');
+        } else {
+            // 折叠
+            content.classList.add('collapsed');
+            icon.classList.add('collapsed');
+        }
+    }
 
     // 监听 body 属性和样式变化 (Argon 主题切换暗色时修改 body style)
     var observer = new MutationObserver(function (mutations) {
@@ -1446,8 +1537,29 @@
     }
 
     async function generateConfig() {
+        var btn = document.getElementById("reload-service-btn");
+        var originalText = btn.textContent;
+        var countdown = 2;
+
+        // 防抖：禁用按钮
+        btn.disabled = true;
+        btn.textContent = "请等待 " + countdown + "s...";
+
+        // 倒计时
+        var timer = setInterval(function () {
+            countdown--;
+            if (countdown <= 0) {
+                clearInterval(timer);
+                btn.disabled = false;
+                btn.textContent = originalText;
+            } else {
+                btn.textContent = "请等待 " + countdown + "s...";
+            }
+        }, 1000);
+
+        // 执行实际操作
         var res = await fetchApi("generate");
-        alert(res.msg);
+        // alert(res.msg);
     }
 
     async function serviceOp(act) {
@@ -2017,17 +2129,37 @@
     async function checkClashApiStatus() {
         try {
             var response = await fetchApi("singbox_status");
-
             var statusEl = document.getElementById("clash-api-status");
+            var stopBtn = document.getElementById("stop-service-btn");
+
             if (response && response.running) {
                 statusEl.innerHTML = '<span style="color: green;">● 运行中</span>';
+                if (stopBtn) {
+                    stopBtn.disabled = false;
+                    stopBtn.style.backgroundColor = '#dc3545';
+                    stopBtn.style.color = 'white';
+                    stopBtn.style.cursor = 'pointer';
+                }
             } else {
                 statusEl.innerHTML = '<span style="color: red;">● 停止中</span>';
+                if (stopBtn) {
+                    stopBtn.disabled = true;
+                    stopBtn.style.backgroundColor = '#6c757d';
+                    stopBtn.style.color = '#cccccc';
+                    stopBtn.style.cursor = 'not-allowed';
+                }
             }
         } catch (e) {
             var statusEl = document.getElementById("clash-api-status");
+            var stopBtn = document.getElementById("stop-service-btn");
             if (statusEl) {
                 statusEl.innerHTML = '<span style="color: red;">● 停止中</span>';
+            }
+            if (stopBtn) {
+                stopBtn.disabled = true;
+                stopBtn.style.backgroundColor = '#6c757d';
+                stopBtn.style.color = '#cccccc';
+                stopBtn.style.cursor = 'not-allowed';
             }
         }
     }
