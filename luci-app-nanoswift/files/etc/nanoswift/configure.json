@@ -1,13 +1,14 @@
 {
   "service": {
     "singbox_bin": "\/usr\/bin\/sing-box",
+    "clash_port": "9090",
     "clash_secret": "12345678",
-    "clash-port": "9090",
     "work_dir": "\/etc\/nanoswift\/run",
     "srs_bin": "\/usr\/bin\/srs",
     "srs_update_enabled": true,
+    "mixed_port": "1080",
     "rules_path": "\/etc\/nanoswift\/rules\/",
-    "srs_cron": "0 4 * * *",
+    "srs_cron": "0 4 *\/10 * *",
     "delay": 10,
     "enabled": true
   },

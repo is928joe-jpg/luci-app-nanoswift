@@ -50,7 +50,6 @@ local function get_template(work_dir, secret)
                 },
                 { query_type = "A", server = "remote" }
             },
-            independent_cache = true,
             strategy = "ipv4_only"
         },
         inbounds = {
@@ -354,6 +353,7 @@ function _M.generate(opts)
         rules = {
             { port = 853 },
             { network = "udp",  port = 443 },
+            { network = "udp",  port = 8853 },
             { protocol = "stun" }
         },
         action = "reject"
