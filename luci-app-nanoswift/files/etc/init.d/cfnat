@@ -69,7 +69,7 @@ start_service() {
     args="$args -baidu-proxy=$baidu_proxy_val"
     
     config_get val "main" "carrier_listens" ""
-    [ -n "$val" ] && args="$args -carrier-listens=$val"
+    [ -n "$val" ] && args="$args -carrier-listens $val"
     
     config_get val "main" "task" "500"
     [ -n "$val" ] && args="$args -task=$val"
