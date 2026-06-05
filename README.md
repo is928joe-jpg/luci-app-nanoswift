@@ -71,7 +71,7 @@ LuCI → 服务 → NanoSwift
 </p>
 
 <p align="center">
-  <b>⚡ 规则绑定界面 —— 极低资源占用</b>
+  <b>⚡ 极低资源占用</b>
 </p>
 
 ---

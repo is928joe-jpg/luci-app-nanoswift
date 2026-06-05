@@ -71,9 +71,9 @@
     }
 
     [data-theme="dark"] .tag-btn.match-highlight {
-        border: 2px solid #5e72e4 !important;
-        background: #2a3a6e !important;
-        color: #aac8ff !important;
+        border: 1px solid #28a745 !important;
+        background: var(--ns-tag-bg) !important;
+        color: var(--ns-text) !important;
     }
 
     [data-theme="dark"] .tag-btn.match-selected {
@@ -158,7 +158,6 @@
         font-weight: bold;
         margin-bottom: 15px;
         color: var(--ns-text) !important;
-        /*border-bottom: 2px solid var(--ns-primary-dark);*/
         padding-bottom: 8px;
     }
 
@@ -273,7 +272,6 @@
         margin: 5px;
     }
 
-    /* 停止服务按钮 - 红色主题 */
     #stop-service-btn {
         background-color: #dc3545 !important;
         color: white !important;
@@ -438,9 +436,9 @@
     }
 
     .tag-btn.match-highlight {
-        border: 2px solid #5e72e4 !important;
-        background: #e8f0fe !important;
-        color: #333 !important;
+        border: 1px solid #28a745 !important;
+        background: var(--ns-tag-bg) !important;
+        color: var(--ns-text) !important;
     }
 
     .tag-btn.match-selected {
@@ -860,11 +858,7 @@
     </div>
 
     <div class="ns-section" style="text-align: center;">
-        <button class="cbi-button cbi-button-save action-btn" id="reload-service-btn" onclick="generateConfig()">重启服务</button>
-        <!--
-        <span style="margin: 0 10px; color: #ccc;">&nbsp</span>
-        <button class="cbi-button cbi-button-apply action-btn" id="restart-btn" onclick="serviceOp('restart')">重启服务</button>
-        -->
+        <button class="cbi-button cbi-button-save action-btn" id="reload-service-btn" onclick="generateConfig()">更新配置</button>
         <span style="margin: 0 10px; color: #ccc;">&nbsp</span>
         <button class="cbi-button cbi-button-reset action-btn" id="stop-service-btn" onclick="serviceOp('stop')">停止服务</button>
     </div>
@@ -894,12 +888,11 @@
                     <div style="font-size: 13px; color: var(--ns-text-light);">
                         💡 使用 <code>|</code> OR，<code>+</code> AND，<code>!</code> 非，<code>()</code> 分组
                     </div>
-                    <button class="cbi-button cbi-button-reset" onclick="hideAdvancedPanel()" style="white-space: nowrap; height: 24px; line-height: 16px; padding: 0 8px; font-size: 11px;" title="隐藏高级面板" type="button">▲ 隐藏</button>
                 </div>
                 <div style="display: flex; gap: 8px; align-items: center;">
                     <input id="mg-advanced-expr" oninput="applyAdvancedMatch()" placeholder="例如: 香港|日本 或 (香港+高速)|(日本+低延迟)" style="flex: 1; height: 28px; box-sizing: border-box; padding: 0 8px; border: 1px solid var(--ns-border); border-radius: 4px; background: var(--ns-input-bg); color: var(--ns-text);" type="text">
-                    <button class="cbi-button cbi-button-apply" onclick="quickSelectMatched()" style="white-space: nowrap; height: 28px; line-height: 18px; padding: 0 12px; font-size: 12px;" title="选中所有匹配的节点" type="button">全选</button>
-                    <button class="cbi-button cbi-button-reset" onclick="quickDeselectMatched()" style="white-space: nowrap; height: 28px; line-height: 18px; padding: 0 12px; font-size: 12px;" title="取消选中所有匹配的节点" type="button">不选</button>
+                    <button class="cbi-button cbi-button-apply" id="mg-select-all-btn" onclick="quickSelectMatched()" style="white-space: nowrap; height: 28px; line-height: 18px; padding: 0 12px; font-size: 12px;" title="选中所有匹配的节点" type="button">全选</button>
+                    <button class="cbi-button cbi-button-reset" id="mg-deselect-all-btn" onclick="quickDeselectMatched()" style="white-space: nowrap; height: 28px; line-height: 18px; padding: 0 12px; font-size: 12px;" title="取消选中所有匹配的节点" type="button">不选</button>
                 </div>
                 <div id="mg-match-preview" style="margin-top: 8px; font-size: 12px; color: var(--ns-text-light);"></div>
             </div>
@@ -1265,6 +1258,11 @@
         document.getElementById("mg-tags-search").value = "";
         renderGroupTags();
         document.getElementById("modal-group").style.display = "block";
+        // 初始禁用全选/不选按钮
+        var selectAllBtn = document.getElementById("mg-select-all-btn");
+        var deselectAllBtn = document.getElementById("mg-deselect-all-btn");
+        if (selectAllBtn) selectAllBtn.disabled = true;
+        if (deselectAllBtn) deselectAllBtn.disabled = true;
     }
 
     function renderGroupTags() {
@@ -1427,7 +1425,6 @@
                 });
                 for (var ipIdx = 0; ipIdx < ips.length; ipIdx++) {
                     var ip = ips[ipIdx].trim();
-                    // 验证 IP 或 CIDR 格式
                     if (!ip.match(/^\d+\.\d+\.\d+\.\d+(\/\d+)?$/) && !ip.match(/^[a-fA-F0-9:]+(\/\d+)?$/)) {
                         return alert("IP 地址格式错误: " + ip + "，应为 IPv4、IPv6 或 CIDR 格式");
                     }
@@ -1473,11 +1470,8 @@
                 var cleanedDomains = [];
                 for (var dIdx = 0; dIdx < domains.length; dIdx++) {
                     var d = domains[dIdx].trim();
-                    // 去除可能的前缀 http:// https://
                     d = d.replace(/^https?:\/\//, '');
-                    // 去除路径部分
                     d = d.split('/')[0];
-                    // 去除开头和结尾的点
                     if (d.startsWith(".")) d = d.substring(1);
                     if (d.endsWith(".")) d = d.substring(0, d.length - 1);
                     cleanedDomains.push(d);
@@ -1492,11 +1486,10 @@
                     return k.trim();
                 });
                 if (keywords.length === 0) return alert("请输入至少一个关键词");
-                // 清理每个关键词：去除引号、空格
                 var cleanedKeywords = [];
                 for (var kIdx = 0; kIdx < keywords.length; kIdx++) {
                     var k = keywords[kIdx].trim();
-                    k = k.replace(/["']/g, '');  // 去除引号
+                    k = k.replace(/["']/g, '');
                     if (k) cleanedKeywords.push(k);
                 }
                 ruleValue = cleanedKeywords.join(",");
@@ -1789,12 +1782,20 @@
         var expr = exprInput.value;
         advancedMatchState.currentExpr = expr;
 
+        var selectAllBtn = document.getElementById("mg-select-all-btn");
+        var deselectAllBtn = document.getElementById("mg-deselect-all-btn");
+
         if (expr.trim() === "") {
             advancedMatchState.lastMatchedTags = [];
             document.getElementById("mg-match-preview").innerHTML = "";
+            if (selectAllBtn) selectAllBtn.disabled = true;
+            if (deselectAllBtn) deselectAllBtn.disabled = true;
             renderGroupTags();
             return;
         }
+
+        if (selectAllBtn) selectAllBtn.disabled = false;
+        if (deselectAllBtn) deselectAllBtn.disabled = false;
 
         var ast = parseAdvancedExpr(expr);
         if (!ast) {
