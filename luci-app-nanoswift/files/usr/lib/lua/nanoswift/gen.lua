@@ -89,7 +89,7 @@ local function get_predefined_rule_sets()
     return {
         "geoip-cn", "geosite-geolocation-cn", "geosite-geolocation-!cn",
         "geosite-chinatelecom", "geosite-chinamobile", "geosite-chinaunicom", "geosite-bytedance",
-        "geosite-telegram", "geoip-telegram"
+        "geosite-telegram", "geoip-telegram", "geosite-anthropic" 
     }
 end
 
@@ -396,7 +396,7 @@ function _M.generate(opts)
     -- ============================================
     local fixed = { "geosite-telegram", "geoip-telegram", "geosite-geolocation-cn", "geoip-cn",
         "geosite-geolocation-!cn", "geosite-chinatelecom", "geosite-chinamobile",
-        "geosite-chinaunicom", "geosite-bytedance" }
+        "geosite-chinaunicom", "geosite-bytedance", "geosite-anthropic"  }
     for _, tag in ipairs(fixed) do used_rule_sets[tag] = true end
     for _, tag in ipairs(get_predefined_rule_sets()) do used_rule_sets[tag] = true end
     for tag in pairs(used_rule_sets) do

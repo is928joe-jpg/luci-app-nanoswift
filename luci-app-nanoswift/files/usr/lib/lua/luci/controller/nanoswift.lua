@@ -2,14 +2,14 @@
 
 module("luci.controller.nanoswift", package.seeall)
 
-local json           = require "luci.jsonc"
-local sys            = require "luci.sys"
-local fs             = require "nixio.fs"
+local json = require "luci.jsonc"
+local sys = require "luci.sys"
+local fs = require "nixio.fs"
 
-local CONF_FILE      = "/etc/nanoswift/configure.json"
-local POOL_FILE      = "/etc/nanoswift/profile/proxies.json"
+local CONF_FILE = "/etc/nanoswift/configure.json"
+local POOL_FILE = "/etc/nanoswift/profile/proxies.json"
 local SRC_RULES_FILE = "/etc/nanoswift/config/rules.txt"
-local STATIC_DIR     = "/etc/nanoswift/static"
+local STATIC_DIR = "/etc/nanoswift/static"
 
 local BACKUP_FILES = {
     ["/etc/nanoswift/configure.json"] = "configure.json",
@@ -19,7 +19,9 @@ local BACKUP_FILES = {
     ["/etc/config/cfnat"] = "cfnat",
 }
 
--- 统一的路径清理函数
+-- ============================================================
+--  统一的路径清理函数
+-- ============================================================
 local function clean_path(path, default)
     if not path or path == "" then
         return default
@@ -35,43 +37,31 @@ end
 --  WS-TLS 加速节点替换函数
 -- ============================================================
 local function apply_wstls_accel(pool, conf)
-    -- 只有当 wstls_accel 为 true 时才进行替换
     if not conf.service or not conf.service.wstls_accel then
         return false
     end
 
-    -- 获取 cfnat-addr 配置
     local uci = require "luci.model.uci".cursor()
     local cfnat_addr = uci:get("cfnat", "main", "addr") or "0.0.0.0:2345"
-    
-    -- 解析 IP 和端口，格式 "IP:PORT"
+
     local cfnat_ip, cfnat_port = cfnat_addr:match("^([^:]+):(%d+)$")
     if not cfnat_ip or not cfnat_port then
         return false
     end
     cfnat_port = tonumber(cfnat_port)
 
-    -- 获取 wstls_accel_select 的值，默认 0
     local accel_select = tonumber(conf.service.wstls_accel_select) or 0
 
-    -- 新端口 = cfnat 端口 + accel_select
     local new_port = cfnat_port + accel_select
 
-    -- 遍历所有 outbounds，替换符合条件的节点
     local replaced_count = 0
     for _, outbound in ipairs(pool.outbounds or {}) do
-        -- 检查是否为 vless + ws + tls 节点
-        if outbound.type == "vless" 
-            and outbound.tls 
-            and outbound.tls.enabled == true 
-            and outbound.transport 
-            and outbound.transport.type == "ws" then
-            
-            -- 保存原始信息（如果需要的话，可以加个 orig_server 字段）
-            -- outbound.orig_server = outbound.server
-            -- outbound.orig_server_port = outbound.server_port
-            
-            -- 执行替换
+        if outbound.type == "vless"
+            and outbound.tls
+            and outbound.tls.enabled == true
+            and outbound.transport
+            and outbound.transport.type == "ws"
+        then
             outbound.server = cfnat_ip
             outbound.server_port = new_port
             replaced_count = replaced_count + 1
@@ -81,6 +71,9 @@ local function apply_wstls_accel(pool, conf)
     return replaced_count > 0
 end
 
+-- ============================================================
+--  路由注册
+-- ============================================================
 function index()
     entry({ "admin", "services", "nanoswift" }, template("nanoswift/index"), _("Nanoswift"), 10)
     entry({ "admin", "services", "nanoswift", "service_settings_get" }, call("service_settings_get"))
@@ -104,6 +97,9 @@ function index()
     entry({ "admin", "services", "nanoswift", "config_backup_restore" }, call("config_backup_restore"))
 end
 
+-- ============================================================
+--  配置文件读写
+-- ============================================================
 local function load_conf()
     local txt = fs.readfile(CONF_FILE)
     local data = txt and json.parse(txt)
@@ -122,14 +118,18 @@ local function load_conf()
                 srs_update_enabled = false,
                 srs_cron = "1 5 */2 * *",
                 wstls_accel = false,
-                wstls_accel_select = "0"
+                wstls_accel_select = "0",
             },
             subscriptions = { clash = {}, v2ray = {}, singbox_nodes = "" },
             groups = {},
-            rules = {}
+            rules = {},
         }
     end
-    if not data.service then data.service = {} end
+
+    if not data.service then
+        data.service = {}
+    end
+
     data.service.enabled = (data.service.enabled == true)
     data.service.delay = data.service.delay or 10
     data.service.rules_path = clean_path(data.service.rules_path, "/etc/nanoswift/rules") .. "/"
@@ -144,10 +144,19 @@ local function load_conf()
     data.service.wstls_accel = (data.service.wstls_accel == true)
     data.service.wstls_accel_select = data.service.wstls_accel_select or "0"
 
-    if not data.subscriptions then data.subscriptions = { clash = {}, v2ray = {}, singbox_nodes = "" } end
-    if not data.subscriptions.singbox_nodes then data.subscriptions.singbox_nodes = "" end
-    if not data.groups then data.groups = {} end
-    if not data.rules then data.rules = {} end
+    if not data.subscriptions then
+        data.subscriptions = { clash = {}, v2ray = {}, singbox_nodes = "" }
+    end
+    if not data.subscriptions.singbox_nodes then
+        data.subscriptions.singbox_nodes = ""
+    end
+    if not data.groups then
+        data.groups = {}
+    end
+    if not data.rules then
+        data.rules = {}
+    end
+
     return data
 end
 
@@ -156,7 +165,7 @@ local function save_conf(conf)
 end
 
 -- ============================================================
---  SRS Cron 任务管理 
+--  SRS Cron 任务管理
 -- ============================================================
 local function update_srs_cron(enabled, cron_expr, rules_path, srs_bin)
     local cron_file = "/etc/crontabs/root"
@@ -165,8 +174,13 @@ local function update_srs_cron(enabled, cron_expr, rules_path, srs_bin)
     local srs_cmd = clean_path(srs_bin, "/usr/bin/srs")
     local output_path = clean_path(rules_path, "/etc/nanoswift/rules")
 
-    local target_line = string.format("%s %s -o %s -i %s",
-        cron_expr or "1 5 */2 * *", srs_cmd, output_path, rules_file)
+    local target_line = string.format(
+        "%s %s -o %s -i %s",
+        cron_expr or "1 5 */2 * *",
+        srs_cmd,
+        output_path,
+        rules_file
+    )
 
     local content = ""
     if fs.access(cron_file) then
@@ -232,40 +246,50 @@ end
 
 local function count(t)
     local n = 0
-    for _ in pairs(t or {}) do n = n + 1 end
+    for _ in pairs(t or {}) do
+        n = n + 1
+    end
     return n
 end
 
 local function pool_tags(pool)
     local tags = {}
     for _, o in ipairs((pool or {}).outbounds or {}) do
-        if o and o.tag then tags[o.tag] = json.stringify(o) end
+        if o and o.tag then
+            tags[o.tag] = json.stringify(o)
+        end
     end
     return tags
 end
 
 local function purge_removed(conf, removed_tags)
     local result = { groups = 0, members = 0, rules = 0 }
+
     for _, g in ipairs(conf.groups or {}) do
         if g and g.members then
             local members, changed = {}, false
             for _, m in ipairs(g.members) do
                 if removed_tags[m] then
-                    changed = true; result.members = result.members + 1
+                    changed = true
+                    result.members = result.members + 1
                 else
                     table.insert(members, m)
                 end
             end
             if changed then
-                result.groups = result.groups + 1; g.members = members
+                result.groups = result.groups + 1
+                g.members = members
             end
         end
     end
+
     for _, r in ipairs(conf.rules or {}) do
         if r and r.outbound and r.outbound ~= "" and removed_tags[r.outbound] then
-            r.outbound = ""; result.rules = result.rules + 1
+            r.outbound = ""
+            result.rules = result.rules + 1
         end
     end
+
     return conf, result
 end
 
@@ -300,7 +324,7 @@ function service_settings_set()
         srs_update_enabled = data.srs_update_enabled == true,
         srs_cron = data.srs_cron or "1 5 */2 * *",
         wstls_accel = (data.wstls_accel == true),
-        wstls_accel_select = data.wstls_accel_select or "0"
+        wstls_accel_select = data.wstls_accel_select or "0",
     }
     save_conf(conf)
 
@@ -334,22 +358,33 @@ function update_proxies()
         local convert_bin = "/usr/bin/convert"
 
         local function run_convert(val, format, is_url)
-            if not val or val == "" then return end
+            if not val or val == "" then
+                return
+            end
             local flag = is_url and "-r" or "-u"
-            local cmd = string.format("%s %s %q -f %s -o %s 2>/dev/null", convert_bin, flag, val, format, tmp_file)
+            local cmd = string.format(
+                "%s %s %q -f %s -o %s 2>/dev/null",
+                convert_bin, flag, val, format, tmp_file
+            )
             sys.call(cmd)
             local txt = fs.readfile(tmp_file)
             if txt then
                 local res = json.parse(txt)
                 if res and res.outbounds then
-                    for _, o in ipairs(res.outbounds) do table.insert(all_outbounds, o) end
+                    for _, o in ipairs(res.outbounds) do
+                        table.insert(all_outbounds, o)
+                    end
                 end
             end
             fs.unlink(tmp_file)
         end
 
-        for _, u in ipairs(conf.subscriptions.clash or {}) do run_convert(u, "clash", true) end
-        for _, s in ipairs(conf.subscriptions.v2ray or {}) do run_convert(s, "v2ray", s:match("^https?://") ~= nil) end
+        for _, u in ipairs(conf.subscriptions.clash or {}) do
+            run_convert(u, "clash", true)
+        end
+        for _, s in ipairs(conf.subscriptions.v2ray or {}) do
+            run_convert(s, "v2ray", s:match("^https?://") ~= nil)
+        end
 
         -- singbox_nodes 添加入节点池
         if conf.subscriptions.singbox_nodes and conf.subscriptions.singbox_nodes ~= "" then
@@ -376,7 +411,10 @@ function update_proxies()
                 end
             end
             if has_json then
-                local merge_cmd = string.format("%s merge %s -C %s 2>&1", singbox_bin, static_merged, STATIC_DIR)
+                local merge_cmd = string.format(
+                    "%s merge %s -C %s 2>&1",
+                    singbox_bin, static_merged, STATIC_DIR
+                )
                 local handle = io.popen(merge_cmd)
                 local merge_output = handle:read("*a") or ""
                 handle:close()
@@ -388,7 +426,11 @@ function update_proxies()
                     local merged_txt = fs.readfile(static_merged)
                     if merged_txt then
                         local ok_merged, merged_data = pcall(json.parse, merged_txt)
-                        if ok_merged and merged_data and merged_data.outbounds and #merged_data.outbounds > 0 then
+                        if ok_merged
+                            and merged_data
+                            and merged_data.outbounds
+                            and #merged_data.outbounds > 0
+                        then
                             for _, node in ipairs(merged_data.outbounds) do
                                 table.insert(all_outbounds, node)
                             end
@@ -404,29 +446,48 @@ function update_proxies()
         local added, removed, kept, changed = {}, {}, {}, {}
         for tag, fp in pairs(new_tags) do
             if old_tags[tag] then
-                if old_tags[tag] == fp then kept[tag] = 1 else changed[tag] = 1 end
+                if old_tags[tag] == fp then
+                    kept[tag] = 1
+                else
+                    changed[tag] = 1
+                end
             else
                 added[tag] = 1
             end
         end
-        for tag in pairs(old_tags) do if not new_tags[tag] then removed[tag] = 1 end end
+        for tag in pairs(old_tags) do
+            if not new_tags[tag] then
+                removed[tag] = 1
+            end
+        end
 
         local purge_result = { groups = 0, members = 0, rules = 0 }
-        if count(removed) > 0 then conf, purge_result = purge_removed(conf, removed) end
+        if count(removed) > 0 then
+            conf, purge_result = purge_removed(conf, removed)
+        end
 
-        save_pool(new_pool); save_conf(conf)
+        save_pool(new_pool)
+        save_conf(conf)
 
         return {
-            msg = string.format("新增:%d 保留:%d 变更:%d 删除:%d | 清理组:%d 成员:%d 规则:%d",
-                count(added), count(kept), count(changed), count(removed),
-                purge_result.groups, purge_result.members, purge_result.rules),
+            msg = string.format(
+                "新增:%d 保留:%d 变更:%d 删除:%d | 清理组:%d 成员:%d 规则:%d",
+                count(added),
+                count(kept),
+                count(changed),
+                count(removed),
+                purge_result.groups,
+                purge_result.members,
+                purge_result.rules
+            ),
             added = count(added),
             removed = count(removed),
             changed = count(changed),
             kept = count(kept),
-            purge = purge_result
+            purge = purge_result,
         }
     end)
+
     luci.http.prepare_content("application/json")
     luci.http.write_json(ok and result or { msg = "更新失败: " .. tostring(result), error = true })
 end
@@ -435,23 +496,16 @@ function action_generate()
     local success, result = pcall(function()
         local conf = load_conf()
         local pool = load_pool()
-
-        -- ========== 在生成配置时应用 WS-TLS 加速节点替换 ==========
         local accel_applied = apply_wstls_accel(pool, conf)
-
-        -- 确保 work_dir 正确传递给 gen.generate
         local gen = require "nanoswift.gen"
         local final = gen.generate({
             service = conf.service,
             groups = conf.groups,
             rules = conf.rules,
-            pool = pool.outbounds or {}
+            pool = pool.outbounds or {},
         })
 
-        -- config.json
         local config_path = "/etc/nanoswift/run/config.json"
-
-        -- 确保目录存在
         local config_dir = "/etc/nanoswift/run"
         if not fs.access(config_dir) then
             fs.mkdir(config_dir)
@@ -469,7 +523,6 @@ function action_generate()
             error("\n配置检查失败: " .. check_output)
         end
 
-        -- 生成配置后，如果服务已启用，重启 sing-box
         if conf.service.enabled then
             configure_singbox_uci(conf)
             os.execute("/etc/init.d/sing-box restart 2>/dev/null")
@@ -482,6 +535,7 @@ function action_generate()
 
         return { ok = true, msg = "配置已重新生成，核心配置已重载" .. accel_msg }
     end)
+
     luci.http.prepare_content("application/json")
     luci.http.write_json(success and result or { ok = false, msg = tostring(result) })
 end
@@ -492,7 +546,7 @@ function proxies_get()
     luci.http.write_json({
         clash = conf.subscriptions.clash or {},
         v2ray = conf.subscriptions.v2ray or {},
-        singbox_nodes = conf.subscriptions.singbox_nodes or ""
+        singbox_nodes = conf.subscriptions.singbox_nodes or "",
     })
 end
 
@@ -502,7 +556,7 @@ function proxies_set()
     conf.subscriptions = {
         clash = data.clash or {},
         v2ray = data.v2ray or {},
-        singbox_nodes = data.singbox_nodes or ""
+        singbox_nodes = data.singbox_nodes or "",
     }
     save_conf(conf)
     luci.http.prepare_content("application/json")
@@ -512,7 +566,11 @@ end
 function proxy_tags()
     local pool = load_pool()
     local tags = {}
-    for _, o in ipairs(pool.outbounds or {}) do if o.tag then table.insert(tags, o.tag) end end
+    for _, o in ipairs(pool.outbounds or {}) do
+        if o.tag then
+            table.insert(tags, o.tag)
+        end
+    end
     luci.http.prepare_content("application/json")
     luci.http.write_json({ tags = tags })
 end
@@ -520,12 +578,22 @@ end
 function proxies_remove()
     local data = json.parse(luci.http.content())
     local rm = {}
-    for _, t in ipairs(data.tags or {}) do rm[t] = true end
+    for _, t in ipairs(data.tags or {}) do
+        rm[t] = true
+    end
     local pool = load_pool()
     local new_o = {}
-    for _, o in ipairs(pool.outbounds or {}) do if not rm[o.tag] then table.insert(new_o, o) end end
-    pool.outbounds = new_o; save_pool(pool)
-    local conf = load_conf(); local purge_result; conf, purge_result = purge_removed(conf, rm); save_conf(conf)
+    for _, o in ipairs(pool.outbounds or {}) do
+        if not rm[o.tag] then
+            table.insert(new_o, o)
+        end
+    end
+    pool.outbounds = new_o
+    save_pool(pool)
+    local conf = load_conf()
+    local purge_result
+    conf, purge_result = purge_removed(conf, rm)
+    save_conf(conf)
     luci.http.prepare_content("application/json")
     luci.http.write_json({ ok = true, msg = "已移除并清理" })
 end
@@ -537,7 +605,9 @@ end
 
 function groups_set()
     local data = json.parse(luci.http.content())
-    local conf = load_conf(); conf.groups = data.groups or {}; save_conf(conf)
+    local conf = load_conf()
+    conf.groups = data.groups or {}
+    save_conf(conf)
     luci.http.prepare_content("application/json")
     luci.http.write_json({ ok = true })
 end
@@ -549,7 +619,9 @@ end
 
 function rules_ui_set()
     local data = json.parse(luci.http.content())
-    local conf = load_conf(); conf.rules = data.rules or {}; save_conf(conf)
+    local conf = load_conf()
+    conf.rules = data.rules or {}
+    save_conf(conf)
     luci.http.prepare_content("application/json")
     luci.http.write_json({ ok = true })
 end
@@ -560,7 +632,9 @@ function config_rules_get()
     if f then
         for line in f:lines() do
             line = line:gsub("^%s*(.-)%s*$", "%1")
-            if line ~= "" and not line:match("^#") then table.insert(lines, line) end
+            if line ~= "" and not line:match("^#") then
+                table.insert(lines, line)
+            end
         end
         f:close()
     end
@@ -586,7 +660,6 @@ function config_backup_download()
     local tmp_tar = "/tmp/" .. filename
     local tmp_dir = "/tmp/nanoswift_backup_temp"
 
-    -- 清理并创建临时目录
     os.execute("rm -rf " .. tmp_dir)
     local mkdir_ret = os.execute("mkdir -p " .. tmp_dir)
     if mkdir_ret ~= 0 then
@@ -595,31 +668,30 @@ function config_backup_download()
         return
     end
 
-    -- 遍历映射表，复制所有需要备份的文件
     local missing_files = {}
     local copied_files = {}
-    
+
     for src_path, tar_name in pairs(BACKUP_FILES) do
         if fs.access(src_path) then
-            -- 确保目标目录存在（对于嵌套的tar_name）
             local dest_dir = fs.dirname(tmp_dir .. "/" .. tar_name)
             if dest_dir ~= tmp_dir then
                 os.execute("mkdir -p " .. dest_dir)
             end
-            
-            local cp_cmd = string.format("cp -r %s %s/%s 2>/dev/null", src_path, tmp_dir, tar_name)
+
+            local cp_cmd = string.format(
+                "cp -r %s %s/%s 2>/dev/null",
+                src_path, tmp_dir, tar_name
+            )
             local cp_ret = os.execute(cp_cmd)
-            
+
             if cp_ret == 0 then
                 table.insert(copied_files, tar_name)
             end
         else
-            -- 文件不存在，记录但不中断（可选文件）
             table.insert(missing_files, tar_name)
         end
     end
 
-    -- 检查是否至少复制了一些文件
     if #copied_files == 0 then
         os.execute("rm -rf " .. tmp_dir)
         luci.http.prepare_content("application/json")
@@ -627,13 +699,14 @@ function config_backup_download()
         return
     end
 
-    -- 打包临时目录
-    local cmd = string.format("cd %s && tar -czf %s * 2>/dev/null", tmp_dir, tmp_tar)
+    local cmd = string.format(
+        "cd %s && tar -czf %s * 2>/dev/null",
+        tmp_dir, tmp_tar
+    )
     local ret = os.execute(cmd)
-    
-    -- 清理临时目录
+
     os.execute("rm -rf " .. tmp_dir)
-    
+
     if ret ~= 0 then
         os.remove(tmp_tar)
         luci.http.prepare_content("application/json")
@@ -641,7 +714,6 @@ function config_backup_download()
         return
     end
 
-    -- 验证打包文件
     local tar_stat = fs.stat(tmp_tar)
     if not tar_stat or tar_stat.size == 0 then
         os.remove(tmp_tar)
@@ -650,7 +722,6 @@ function config_backup_download()
         return
     end
 
-    -- 读取 tar 文件并发送
     local f = io.open(tmp_tar, "rb")
     if not f then
         os.remove(tmp_tar)
@@ -663,7 +734,10 @@ function config_backup_download()
     f:close()
     os.remove(tmp_tar)
 
-    luci.http.header("Content-Disposition", string.format('attachment; filename="%s"', filename))
+    luci.http.header(
+        "Content-Disposition",
+        string.format('attachment; filename="%s"', filename)
+    )
     luci.http.header("Content-Type", "application/gzip")
     luci.http.header("Content-Length", tostring(#data))
     luci.http.write(data)
@@ -676,11 +750,9 @@ function config_backup_restore()
     local tmp_upload = "/tmp/ns_restore_upload.tar.gz"
     local tmp_extract = "/tmp/ns_restore_extract"
 
-    -- 清理旧文件
     os.remove(tmp_upload)
     os.execute("rm -rf " .. tmp_extract)
 
-    -- 直接从标准输入读取原始 POST 数据
     local raw_body = io.stdin:read("*a")
 
     if not raw_body or #raw_body == 0 then
@@ -695,7 +767,9 @@ function config_backup_restore()
     end
 
     -- 获取 boundary
-    local content_type = luci.http.getenv("CONTENT_TYPE") or os.getenv("CONTENT_TYPE") or ""
+    local content_type = luci.http.getenv("CONTENT_TYPE")
+        or os.getenv("CONTENT_TYPE")
+        or ""
     local boundary = content_type:match("boundary=(.+)")
 
     if not boundary then
@@ -727,7 +801,11 @@ function config_backup_restore()
                 body_start = body_start + 4
 
                 -- 查找下一个 boundary
-                local next_boundary = raw_body:find("\r\n" .. boundary_marker, body_start, true)
+                local next_boundary = raw_body:find(
+                    "\r\n" .. boundary_marker,
+                    body_start,
+                    true
+                )
                 if next_boundary then
                     file_content = raw_body:sub(body_start, next_boundary - 1)
                 end
@@ -762,7 +840,9 @@ function config_backup_restore()
     f:close()
 
     -- 验证是否为有效的 tar.gz 文件
-    local check_ret = os.execute(string.format("tar -tzf %s >/dev/null 2>&1", tmp_upload))
+    local check_ret = os.execute(
+        string.format("tar -tzf %s >/dev/null 2>&1", tmp_upload)
+    )
     if check_ret ~= 0 then
         os.remove(tmp_upload)
         luci.http.header("Content-Type", "text/html; charset=utf-8")
@@ -779,7 +859,9 @@ function config_backup_restore()
     os.execute("mkdir -p " .. tmp_extract)
 
     -- 解压 tar 包
-    local ret = os.execute(string.format("tar -xzf %s -C %s 2>/dev/null", tmp_upload, tmp_extract))
+    local ret = os.execute(
+        string.format("tar -xzf %s -C %s 2>/dev/null", tmp_upload, tmp_extract)
+    )
     if ret ~= 0 then
         os.remove(tmp_upload)
         os.execute("rm -rf " .. tmp_extract)
@@ -807,7 +889,6 @@ function config_backup_restore()
         return
     end
 
-    -- 构建反向映射：tar名称 -> 源路径
     local restore_map = {}
     for src_path, tar_name in pairs(BACKUP_FILES) do
         restore_map[tar_name] = src_path
@@ -855,7 +936,9 @@ function config_backup_restore()
         else
             fs.mkdir(static_dest)
         end
-        os.execute(string.format("cp -a %s/* %s/ 2>/dev/null", static_src, static_dest))
+        os.execute(
+            string.format("cp -a %s/* %s/ 2>/dev/null", static_src, static_dest)
+        )
     end
 
     -- 3. 恢复 profile/proxies.json
@@ -866,7 +949,9 @@ function config_backup_restore()
         if not fs.access(proxies_dir) then
             fs.mkdir(proxies_dir)
         end
-        os.execute(string.format("cp -f %s %s 2>/dev/null", proxies_src, proxies_dest))
+        os.execute(
+            string.format("cp -f %s %s 2>/dev/null", proxies_src, proxies_dest)
+        )
     end
 
     -- 4. 恢复 run/config.json
@@ -877,7 +962,9 @@ function config_backup_restore()
         if not fs.access(config_dir) then
             fs.mkdir(config_dir)
         end
-        os.execute(string.format("cp -f %s %s 2>/dev/null", config_src, config_dest))
+        os.execute(
+            string.format("cp -f %s %s 2>/dev/null", config_src, config_dest)
+        )
     end
 
     -- 5. 恢复 /etc/config/cfnat
@@ -893,7 +980,7 @@ function config_backup_restore()
             fs.writefile(cfnat_dest, cfnat_data)
         end
     end
-    
+
     -- 清理临时文件
     os.execute("rm -rf " .. tmp_extract)
     os.remove(tmp_upload)
@@ -951,7 +1038,11 @@ end
 function cfnat_settings_set()
     local data = json.parse(luci.http.content())
     local uci = require "luci.model.uci".cursor()
-    local enabled = (data.enabled == true or data.enabled == "1" or data.enabled == "true")
+    local enabled = (
+        data.enabled == true
+        or data.enabled == "1"
+        or data.enabled == "true"
+    )
 
     uci:set("cfnat", "main", "enabled", enabled and "1" or "0")
     uci:set("cfnat", "main", "addr", data.addr or "0.0.0.0:2345")
@@ -964,9 +1055,20 @@ function cfnat_settings_set()
     uci:set("cfnat", "main", "num", data.num or "5")
     uci:set("cfnat", "main", "port", data.port or "443")
     uci:set("cfnat", "main", "http_port", data.http_port or "80")
-    uci:set("cfnat", "main", "random", (data.random == true or data.random == "true") and "true" or "false")
-    uci:set("cfnat", "main", "baidu_proxy",
-        (data.baidu_proxy == true or data.baidu_proxy == "true") and "true" or "false")
+    uci:set(
+        "cfnat",
+        "main",
+        "random",
+        (data.random == true or data.random == "true") and "true" or "false"
+    )
+    uci:set(
+        "cfnat",
+        "main",
+        "baidu_proxy",
+        (data.baidu_proxy == true or data.baidu_proxy == "true")
+            and "true"
+            or "false"
+    )
     uci:set("cfnat", "main", "task", data.task or "300")
     uci:set("cfnat", "main", "carrier_listens", data.carrier_listens or "")
     uci:set("cfnat", "main", "workdir", data.workdir or "/etc/nanoswift/run")
@@ -1013,6 +1115,6 @@ function singbox_status()
     luci.http.prepare_content("application/json")
     luci.http.write_json({
         running = running,
-        status = running and "running" or "stopped"
+        status = running and "running" or "stopped",
     })
 end
