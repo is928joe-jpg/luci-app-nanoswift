@@ -531,7 +531,7 @@ function config_backup_download()
 
     -- 打包 configure.json、static 目录、proxies.json、config.json
     local cmd = string.format(
-        "cd /etc/nanoswift && tar -czf %s configure.json static/ profile/proxies.json run/config.json 2>/dev/null",
+        "cd /etc/nanoswift && tar -czf %s configure.json static/ profile/proxies.json run/config.json run/cache.db 2>/dev/null",
         tmp_tar
     )
     local ret = os.execute(cmd)
@@ -752,15 +752,23 @@ function config_backup_restore()
         os.execute(string.format("cp -f %s %s/ 2>/dev/null", proxies_src, profile_dir))
     end
 
-    -- 4. 恢复 run/config.json
+    -- 4. 确保 run 目录存在
+    local run_dir = "/etc/nanoswift/run"
+    if not fs.access(run_dir) then
+        fs.mkdir(run_dir)
+    end
+
+    -- 恢复 run/config.json
     local config_src = tmp_extract .. "/run/config.json"
     if fs.access(config_src) then
-        local run_dir = "/etc/nanoswift/run"
-        if not fs.access(run_dir) then
-            fs.mkdir(run_dir)
-        end
         os.execute(string.format("cp -f %s %s/ 2>/dev/null", config_src, run_dir))
     end
+
+    -- 恢复 run/cache.db
+    local cachedb_src = tmp_extract .. "/run/cache.db"
+    if fs.access(cachedb_src) then
+        os.execute(string.format("cp -f %s %s/ 2>/dev/null", cachedb_src, run_dir))
+    end    
     
     -- 清理临时文件
     os.execute("rm -rf " .. tmp_extract)
