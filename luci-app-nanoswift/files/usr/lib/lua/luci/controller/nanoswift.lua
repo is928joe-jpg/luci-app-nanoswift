@@ -11,6 +11,14 @@ local POOL_FILE      = "/etc/nanoswift/profile/proxies.json"
 local SRC_RULES_FILE = "/etc/nanoswift/config/rules.txt"
 local STATIC_DIR     = "/etc/nanoswift/static"
 
+local BACKUP_FILES = {
+    ["/etc/nanoswift/configure.json"] = "configure.json",
+    ["/etc/nanoswift/static"] = "static",
+    ["/etc/nanoswift/profile/proxies.json"] = "proxies.json",
+    ["/etc/nanoswift/run/config.json"] = "config.json",
+    ["/etc/config/cfnat"] = "cfnat",
+}
+
 -- 统一的路径清理函数
 local function clean_path(path, default)
     if not path or path == "" then
@@ -576,35 +584,76 @@ function config_backup_download()
     local timestamp = os.date("%Y%m%d_%H%M%S")
     local filename = string.format("nanoswift_backup_%s.tar.gz", timestamp)
     local tmp_tar = "/tmp/" .. filename
+    local tmp_dir = "/tmp/nanoswift_backup_temp"
 
-    -- 确保目录存在
-    if not fs.access(STATIC_DIR) then
-        fs.mkdir(STATIC_DIR)
-    end
-    local profile_dir = "/etc/nanoswift/profile"
-    if not fs.access(profile_dir) then
-        fs.mkdir(profile_dir)
-    end
-    local run_dir = "/etc/nanoswift/run"
-    if not fs.access(run_dir) then
-        fs.mkdir(run_dir)
+    -- 清理并创建临时目录
+    os.execute("rm -rf " .. tmp_dir)
+    local mkdir_ret = os.execute("mkdir -p " .. tmp_dir)
+    if mkdir_ret ~= 0 then
+        luci.http.prepare_content("application/json")
+        luci.http.write_json({ ok = false, msg = "无法创建临时目录" })
+        return
     end
 
-    -- 打包 configure.json、static 目录、proxies.json、config.json
-    local cmd = string.format(
-        "cd /etc/nanoswift && tar -czf %s configure.json static/ profile/proxies.json run/config.json 2>/dev/null",
-        tmp_tar
-    )
+    -- 遍历映射表，复制所有需要备份的文件
+    local missing_files = {}
+    local copied_files = {}
+    
+    for src_path, tar_name in pairs(BACKUP_FILES) do
+        if fs.access(src_path) then
+            -- 确保目标目录存在（对于嵌套的tar_name）
+            local dest_dir = fs.dirname(tmp_dir .. "/" .. tar_name)
+            if dest_dir ~= tmp_dir then
+                os.execute("mkdir -p " .. dest_dir)
+            end
+            
+            local cp_cmd = string.format("cp -r %s %s/%s 2>/dev/null", src_path, tmp_dir, tar_name)
+            local cp_ret = os.execute(cp_cmd)
+            
+            if cp_ret == 0 then
+                table.insert(copied_files, tar_name)
+            end
+        else
+            -- 文件不存在，记录但不中断（可选文件）
+            table.insert(missing_files, tar_name)
+        end
+    end
+
+    -- 检查是否至少复制了一些文件
+    if #copied_files == 0 then
+        os.execute("rm -rf " .. tmp_dir)
+        luci.http.prepare_content("application/json")
+        luci.http.write_json({ ok = false, msg = "没有可备份的文件" })
+        return
+    end
+
+    -- 打包临时目录
+    local cmd = string.format("cd %s && tar -czf %s * 2>/dev/null", tmp_dir, tmp_tar)
     local ret = os.execute(cmd)
+    
+    -- 清理临时目录
+    os.execute("rm -rf " .. tmp_dir)
+    
     if ret ~= 0 then
+        os.remove(tmp_tar)
         luci.http.prepare_content("application/json")
         luci.http.write_json({ ok = false, msg = "打包失败" })
+        return
+    end
+
+    -- 验证打包文件
+    local tar_stat = fs.stat(tmp_tar)
+    if not tar_stat or tar_stat.size == 0 then
+        os.remove(tmp_tar)
+        luci.http.prepare_content("application/json")
+        luci.http.write_json({ ok = false, msg = "备份文件为空" })
         return
     end
 
     -- 读取 tar 文件并发送
     local f = io.open(tmp_tar, "rb")
     if not f then
+        os.remove(tmp_tar)
         luci.http.prepare_content("application/json")
         luci.http.write_json({ ok = false, msg = "无法读取备份文件" })
         return
@@ -758,6 +807,12 @@ function config_backup_restore()
         return
     end
 
+    -- 构建反向映射：tar名称 -> 源路径
+    local restore_map = {}
+    for src_path, tar_name in pairs(BACKUP_FILES) do
+        restore_map[tar_name] = src_path
+    end
+
     -- 1. 覆盖 configure.json
     local conf_data = fs.readfile(tmp_extract .. "/configure.json")
     if not conf_data then
@@ -789,41 +844,58 @@ function config_backup_restore()
     end
 
     -- 写入配置文件
-    fs.writefile(CONF_FILE, conf_data)
+    fs.writefile(restore_map["configure.json"], conf_data)
 
     -- 2. 清空并恢复 static 目录
-    if fs.access(STATIC_DIR) then
-        os.execute("rm -rf " .. STATIC_DIR .. "/*")
-    else
-        fs.mkdir(STATIC_DIR)
-    end
-
     local static_src = tmp_extract .. "/static"
     if fs.access(static_src) and fs.stat(static_src, "type") == "dir" then
-        os.execute(string.format("cp -a %s/* %s/ 2>/dev/null", static_src, STATIC_DIR))
+        local static_dest = restore_map["static"]
+        if fs.access(static_dest) then
+            os.execute("rm -rf " .. static_dest .. "/*")
+        else
+            fs.mkdir(static_dest)
+        end
+        os.execute(string.format("cp -a %s/* %s/ 2>/dev/null", static_src, static_dest))
     end
 
     -- 3. 恢复 profile/proxies.json
-    local proxies_src = tmp_extract .. "/profile/proxies.json"
+    local proxies_src = tmp_extract .. "/proxies.json"
     if fs.access(proxies_src) then
-        local profile_dir = "/etc/nanoswift/profile"
-        if not fs.access(profile_dir) then
-            fs.mkdir(profile_dir)
+        local proxies_dest = restore_map["proxies.json"]
+        local proxies_dir = fs.dirname(proxies_dest)
+        if not fs.access(proxies_dir) then
+            fs.mkdir(proxies_dir)
         end
-        os.execute(string.format("cp -f %s %s/ 2>/dev/null", proxies_src, profile_dir))
+        os.execute(string.format("cp -f %s %s 2>/dev/null", proxies_src, proxies_dest))
     end
 
     -- 4. 恢复 run/config.json
-    local config_src = tmp_extract .. "/run/config.json"
+    local config_src = tmp_extract .. "/config.json"
     if fs.access(config_src) then
-        local run_dir = "/etc/nanoswift/run"
-        if not fs.access(run_dir) then
-            fs.mkdir(run_dir)
+        local config_dest = restore_map["config.json"]
+        local config_dir = fs.dirname(config_dest)
+        if not fs.access(config_dir) then
+            fs.mkdir(config_dir)
         end
-        os.execute(string.format("cp -f %s %s/ 2>/dev/null", config_src, run_dir))
+        os.execute(string.format("cp -f %s %s 2>/dev/null", config_src, config_dest))
+    end
+
+    -- 5. 恢复 /etc/config/cfnat
+    local cfnat_src = tmp_extract .. "/cfnat"
+    if fs.access(cfnat_src) then
+        local cfnat_dest = restore_map["cfnat"]
+        local cfnat_data = fs.readfile(cfnat_src)
+        if cfnat_data then
+            local cfnat_dir = fs.dirname(cfnat_dest)
+            if not fs.access(cfnat_dir) then
+                fs.mkdir(cfnat_dir)
+            end
+            fs.writefile(cfnat_dest, cfnat_data)
+        end
     end
     
-    -- 清理临时文件    os.execute("rm -rf " .. tmp_extract)
+    -- 清理临时文件
+    os.execute("rm -rf " .. tmp_extract)
     os.remove(tmp_upload)
 
     -- 返回成功的 HTML 响应

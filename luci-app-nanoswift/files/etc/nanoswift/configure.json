@@ -1,16 +1,18 @@
 {
   "service": {
-    "singbox_bin": "\/usr\/bin\/sing-box",
+    "enabled": true,
+    "wstls_accel": true,
     "clash_port": "9090",
     "clash_secret": "12345678",
     "work_dir": "\/etc\/nanoswift\/run",
     "srs_bin": "\/usr\/bin\/srs",
-    "srs_update_enabled": true,
     "mixed_port": "1080",
-    "rules_path": "\/etc\/nanoswift\/rules\/",
+    "wstls_accel_select": "0",
     "srs_cron": "0 4 *\/10 * *",
+    "rules_path": "\/etc\/nanoswift\/rules\/",
+    "srs_update_enabled": true,
     "delay": 10,
-    "enabled": true
+    "singbox_bin": "\/usr\/bin\/sing-box"
   },
   "subscriptions": {
     "clash": [],
@@ -31,11 +33,11 @@
   ],
   "rules": [
     {
-      "rule": "geosite-openai.srs,geosite-google-gemini.srs,geoip-ai.srs,geosite-bing.srs,geosite-xai.srs",
+      "rule": "geosite-openai.srs, geosite-google-gemini.srs, geoip-ai.srs, geosite-bing.srs, geosite-xai.srs, geoip-twitter.srs, geosite-anthropic.srs, geosite-twitter.srs",
       "outbound": "付费节点"
     },
     {
-      "rule": "geoip-google.srs,geosite-google.srs,geoip-facebook.srs,geosite-facebook.srs,geosite-facebook-dev.srs,geoip-netflix.srs,geosite-netflix.srs,geosite-twitter.srs,geosite-xai.srs,geosite-youtube.srs,geoip-twitter.srs",
+      "rule": "geoip-google.srs,geosite-google.srs,geoip-facebook.srs,geosite-facebook.srs,geosite-facebook-dev.srs,geoip-netflix.srs,geosite-netflix.srs,geosite-youtube.srs",
       "outbound": "免费节点"
     },
     {
