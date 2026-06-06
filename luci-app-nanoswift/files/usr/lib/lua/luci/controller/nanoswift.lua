@@ -23,6 +23,56 @@ local function clean_path(path, default)
     return path
 end
 
+-- ============================================================
+--  WS-TLS 加速节点替换函数
+-- ============================================================
+local function apply_wstls_accel(pool, conf)
+    -- 只有当 wstls_accel 为 true 时才进行替换
+    if not conf.service or not conf.service.wstls_accel then
+        return false
+    end
+
+    -- 获取 cfnat-addr 配置
+    local uci = require "luci.model.uci".cursor()
+    local cfnat_addr = uci:get("cfnat", "main", "addr") or "0.0.0.0:2345"
+    
+    -- 解析 IP 和端口，格式 "IP:PORT"
+    local cfnat_ip, cfnat_port = cfnat_addr:match("^([^:]+):(%d+)$")
+    if not cfnat_ip or not cfnat_port then
+        return false
+    end
+    cfnat_port = tonumber(cfnat_port)
+
+    -- 获取 wstls_accel_select 的值，默认 0
+    local accel_select = tonumber(conf.service.wstls_accel_select) or 0
+
+    -- 新端口 = cfnat 端口 + accel_select
+    local new_port = cfnat_port + accel_select
+
+    -- 遍历所有 outbounds，替换符合条件的节点
+    local replaced_count = 0
+    for _, outbound in ipairs(pool.outbounds or {}) do
+        -- 检查是否为 vless + ws + tls 节点
+        if outbound.type == "vless" 
+            and outbound.tls 
+            and outbound.tls.enabled == true 
+            and outbound.transport 
+            and outbound.transport.type == "ws" then
+            
+            -- 保存原始信息（如果需要的话，可以加个 orig_server 字段）
+            -- outbound.orig_server = outbound.server
+            -- outbound.orig_server_port = outbound.server_port
+            
+            -- 执行替换
+            outbound.server = cfnat_ip
+            outbound.server_port = new_port
+            replaced_count = replaced_count + 1
+        end
+    end
+
+    return replaced_count > 0
+end
+
 function index()
     entry({ "admin", "services", "nanoswift" }, template("nanoswift/index"), _("Nanoswift"), 10)
     entry({ "admin", "services", "nanoswift", "service_settings_get" }, call("service_settings_get"))
@@ -62,7 +112,9 @@ local function load_conf()
                 clash_port = "9090",
                 mixed_port = "1080",
                 srs_update_enabled = false,
-                srs_cron = "1 5 */2 * *"
+                srs_cron = "1 5 */2 * *",
+                wstls_accel = false,
+                wstls_accel_select = "0"
             },
             subscriptions = { clash = {}, v2ray = {}, singbox_nodes = "" },
             groups = {},
@@ -81,6 +133,8 @@ local function load_conf()
     data.service.mixed_port = data.service.mixed_port or "1080"
     data.service.srs_update_enabled = (data.service.srs_update_enabled == true)
     data.service.srs_cron = data.service.srs_cron or "1 5 */2 * *"
+    data.service.wstls_accel = (data.service.wstls_accel == true)
+    data.service.wstls_accel_select = data.service.wstls_accel_select or "0"
 
     if not data.subscriptions then data.subscriptions = { clash = {}, v2ray = {}, singbox_nodes = "" } end
     if not data.subscriptions.singbox_nodes then data.subscriptions.singbox_nodes = "" end
@@ -135,8 +189,6 @@ local function configure_singbox_uci(conf)
     local work_dir = conf.service.work_dir or "/etc/nanoswift/run"
     local conffile = "/etc/nanoswift/run/config.json"
     local delay = conf.service.delay or 10
-
-    -- 设置 UCI 配置
 
     os.execute("uci set sing-box.main.workdir='" .. work_dir .. "'")
     os.execute("uci set sing-box.main.conffile='" .. conffile .. "'")
@@ -238,7 +290,9 @@ function service_settings_set()
         clash_port = data.clash_port or "9090",
         mixed_port = data.mixed_port or "1080",
         srs_update_enabled = data.srs_update_enabled == true,
-        srs_cron = data.srs_cron or "1 5 */2 * *"
+        srs_cron = data.srs_cron or "1 5 */2 * *",
+        wstls_accel = (data.wstls_accel == true),
+        wstls_accel_select = data.wstls_accel_select or "0"
     }
     save_conf(conf)
 
@@ -306,7 +360,6 @@ function update_proxies()
             fs.mkdir(STATIC_DIR)
         end
         if fs.access(STATIC_DIR) then
-            -- 检查目录中是否有 .json 文件
             local has_json = false
             for fname in fs.dir(STATIC_DIR) do
                 if fname:match("%.json$") then
@@ -375,10 +428,13 @@ function action_generate()
         local conf = load_conf()
         local pool = load_pool()
 
+        -- ========== 在生成配置时应用 WS-TLS 加速节点替换 ==========
+        local accel_applied = apply_wstls_accel(pool, conf)
+
         -- 确保 work_dir 正确传递给 gen.generate
         local gen = require "nanoswift.gen"
         local final = gen.generate({
-            service = conf.service, -- 这里已经包含 work_dir
+            service = conf.service,
             groups = conf.groups,
             rules = conf.rules,
             pool = pool.outbounds or {}
@@ -411,7 +467,12 @@ function action_generate()
             os.execute("/etc/init.d/sing-box restart 2>/dev/null")
         end
 
-        return { ok = true, msg = "配置已重新生成,核心配置已重载" }
+        local accel_msg = ""
+        if accel_applied then
+            accel_msg = "，已应用 WS-TLS 加速节点替换"
+        end
+
+        return { ok = true, msg = "配置已重新生成，核心配置已重载" .. accel_msg }
     end)
     luci.http.prepare_content("application/json")
     luci.http.write_json(success and result or { ok = false, msg = tostring(result) })
@@ -531,7 +592,7 @@ function config_backup_download()
 
     -- 打包 configure.json、static 目录、proxies.json、config.json
     local cmd = string.format(
-        "cd /etc/nanoswift && tar -czf %s configure.json static/ profile/proxies.json run/config.json run/cache.db 2>/dev/null",
+        "cd /etc/nanoswift && tar -czf %s configure.json static/ profile/proxies.json run/config.json 2>/dev/null",
         tmp_tar
     )
     local ret = os.execute(cmd)
@@ -752,26 +813,17 @@ function config_backup_restore()
         os.execute(string.format("cp -f %s %s/ 2>/dev/null", proxies_src, profile_dir))
     end
 
-    -- 4. 确保 run 目录存在
-    local run_dir = "/etc/nanoswift/run"
-    if not fs.access(run_dir) then
-        fs.mkdir(run_dir)
-    end
-
-    -- 恢复 run/config.json
+    -- 4. 恢复 run/config.json
     local config_src = tmp_extract .. "/run/config.json"
     if fs.access(config_src) then
+        local run_dir = "/etc/nanoswift/run"
+        if not fs.access(run_dir) then
+            fs.mkdir(run_dir)
+        end
         os.execute(string.format("cp -f %s %s/ 2>/dev/null", config_src, run_dir))
     end
-
-    -- 恢复 run/cache.db
-    local cachedb_src = tmp_extract .. "/run/cache.db"
-    if fs.access(cachedb_src) then
-        os.execute(string.format("cp -f %s %s/ 2>/dev/null", cachedb_src, run_dir))
-    end    
     
-    -- 清理临时文件
-    os.execute("rm -rf " .. tmp_extract)
+    -- 清理临时文件    os.execute("rm -rf " .. tmp_extract)
     os.remove(tmp_upload)
 
     -- 返回成功的 HTML 响应

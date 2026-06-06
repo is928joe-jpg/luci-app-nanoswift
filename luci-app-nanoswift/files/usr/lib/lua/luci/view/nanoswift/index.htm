@@ -124,6 +124,14 @@
         min-height: 32px;
     }
 
+    .setting-row input[type="radio"] {
+        margin: 0 0 0 2px;
+        top: 0;
+        vertical-align: middle;
+        position: relative;
+        display: inline-block;
+    }
+
     .path-input {
         display: inline-flex;
         align-items: center;
@@ -622,14 +630,16 @@
             <div class="setting-row">
                 <div class="checkbox-label">
                     <input id="service-enabled" onchange="saveServiceSettings()" type="checkbox">
-                    <span>开机自启服务:</span>
+                    <span>开机自启服务</span>
                 </div>
+            </div>
+            <div class="setting-row">
                 <div class="path-input">
                     <label>延时(秒):</label>
                     <input id="service-delay" min="0" onchange="saveServiceSettings()" style="width:60px;" type="number">
                 </div>
                 <div class="path-input">
-                    <label>mixed 端口:</label>
+                    <label>Mixed代理:</label>
                     <input id="mixed-port" max="65535" min="1" onchange="saveServiceSettings()" style="width:80px;" type="number">
                 </div>
                 <div class="path-input">
@@ -668,6 +678,31 @@
 
             <div class="setting-row">
                 <div class="checkbox-label">
+                    <input id="nanoswift-wstls-accel" onchange="saveServiceSettings()" type="checkbox">
+                    <span>对 WS-TLS 节点加速</span>
+                </div>
+                <div class="setting-row" id="wstls-accel-radio-group">
+                    <label>
+                        <input checked id="wstls-accel-auto" name="nanoswift-accel-select" type="radio" value="0">
+                        auto
+                    </label>
+                    <label>
+                        <input id="wstls-accel-telecom" name="nanoswift-accel-select" type="radio" value="1">
+                        telecom
+                    </label>
+                    <label>
+                        <input id="wstls-accel-unicom" name="nanoswift-accel-select" type="radio" value="2">
+                        unicom
+                    </label>
+                    <label>
+                        <input id="wstls-accel-mobile" name="nanoswift-accel-select" type="radio" value="3">
+                        mobile
+                    </label>
+                </div>
+            </div>
+
+            <div class="setting-row">
+                <div class="checkbox-label">
                     <a href="#" id="node-management-link" style="font-size: 14px; font-weight: normal; text-decoration: none; border-bottom: none; padding: 0;" target="_blank">
                         进入节点管理面板
                     </a>
@@ -688,8 +723,10 @@
             <div class="setting-row">
                 <div class="checkbox-label">
                     <input id="cfnat-enabled" onchange="saveCfnatSettings()" type="checkbox">
-                    <span>启用 CFNAT:</span>
+                    <span>启用 CFNAT</span>
                 </div>
+            </div>
+            <div class="setting-row">
                 <div class="path-input">
                     <label>监听地址:</label>
                     <input id="cfnat-addr" onchange="saveCfnatSettings()" placeholder="0.0.0.0:2345" style="width:150px;" type="text">
@@ -752,25 +789,27 @@
                 </div>
             </div>
             <div class="setting-row">
+                <div class="path-input">
+                    <label>工作目录:</label>
+                    <input id="cfnat-workdir" onchange="saveCfnatSettings()" placeholder="/mnt/sda3/opt/singbox" style="width:300px;" type="text">
+                </div>
                 <div class="checkbox-label">
                     <span>随机IP:</span>
                     <input id="cfnat-random" onchange="saveCfnatSettings()" type="checkbox">
                 </div>
+            </div>
+            <div class="setting-row">
                 <div class="checkbox-label">
                     <span>百度前置代理:</span>
+                    <!-- 新增 id: cfnat-baidu-proxy -->
                     <input id="cfnat-baidu-proxy" onchange="saveCfnatSettings()" type="checkbox">
                 </div>
             </div>
             <div class="setting-row">
                 <div class="path-input">
                     <label>运营商分池监听:</label>
-                    <input id="cfnat-carrier-listens" onchange="saveCfnatSettings()" placeholder="mobile=127.0.0.1:2346,telecom=127.0.0.1:2347,unicom=127.0.0.1:2348" style="width:350px;" type="text">
-                </div>
-            </div>
-            <div class="setting-row">
-                <div class="path-input">
-                    <label>工作目录:</label>
-                    <input id="cfnat-workdir" onchange="saveCfnatSettings()" placeholder="/mnt/sda3/opt/singbox" style="width:300px;" type="text">
+                    <!-- 新增 id: cfnat-carrier-listens -->
+                    <input id="cfnat-carrier-listens" onchange="saveCfnatSettings()" placeholder="mobile=127.0.0.1:2346,telecom=127.0.0.1:2347,unicom=127.0.0.1:2348" style="width:490px;" type="text">
                 </div>
             </div>
         </div>
@@ -1012,17 +1051,14 @@
         var icon = titleEl.querySelector('.collapse-icon');
 
         if (content.classList.contains('collapsed')) {
-            // 展开
             content.classList.remove('collapsed');
             icon.classList.remove('collapsed');
         } else {
-            // 折叠
             content.classList.add('collapsed');
             icon.classList.add('collapsed');
         }
     }
 
-    // 监听 body 属性和样式变化 (Argon 主题切换暗色时修改 body style)
     var observer = new MutationObserver(function (mutations) {
         mutations.forEach(function (mutation) {
             if (mutation.type === 'attributes' &&
@@ -1033,7 +1069,6 @@
     });
     observer.observe(document.body, {attributes: true});
 
-    // 监听 localStorage 主题设置变化
     window.addEventListener('storage', function (e) {
         if (e.key === 'argon_dark_mode' || e.key === 'dark_mode' || e.key === 'theme') {
             updateTheme();
@@ -1047,7 +1082,6 @@
     var removedProxies = [];
     var countdownInterval = null;
 
-    // 更新节点管理链接
     function updateNodeManagementLink() {
         var secretInput = document.getElementById("clash-secret");
         var portInput = document.getElementById("clash-port");
@@ -1068,6 +1102,8 @@
         checkClashApiStatus();
         setInterval(refreshCfnatStatus, 10000);
         setInterval(checkClashApiStatus, 10000);
+        applyWstlsCfnatLinkage();
+        updateCarrierListensVisibility();
     });
 
     async function fetchApi(path, body) {
@@ -1105,6 +1141,16 @@
                 document.getElementById("srs-update-enabled").checked = !!svcRes.srs_update_enabled;
                 document.getElementById("srs-cron").value = svcRes.srs_cron || "1 5 */2 * *";
                 document.getElementById("srs-update-settings").style.display = svcRes.srs_update_enabled ? "block" : "none";
+
+                if (svcRes.wstls_accel !== undefined) {
+                    document.getElementById("nanoswift-wstls-accel").checked = !!svcRes.wstls_accel;
+                }
+
+                if (svcRes.wstls_accel_select !== undefined) {
+                    var radioVal = svcRes.wstls_accel_select || "0";
+                    var radio = document.querySelector('input[name="nanoswift-accel-select"][value="' + radioVal + '"]');
+                    if (radio) radio.checked = true;
+                }
             }
             renderTables();
             updateNodeManagementLink();
@@ -1122,9 +1168,6 @@
         }
         document.querySelector("#group-table tbody").innerHTML = groupHtml;
 
-        // ==========================================================================
-        // 合并规则：按 rule_type + outbound 分组，合并成一条新规则
-        // ==========================================================================
         var mergedMap = {};
         var mergedOrder = [];
 
@@ -1161,7 +1204,6 @@
         state.rulesUI = newRulesUI;
         fetchApi("rules_ui_set", {rules: state.rulesUI});
 
-        // 渲染规则表格（带拖动手柄）
         var ruleHtml = "";
         for (var i = 0; i < state.rulesUI.length; i++) {
             var r = state.rulesUI[i];
@@ -1190,11 +1232,9 @@
         }
         document.querySelector("#rule-table tbody").innerHTML = ruleHtml;
 
-        // 初始化拖动排序
         initDragSort();
     }
 
-    // 格式化规则显示
     function formatRuleDisplay(ruleType, ruleValue) {
         var items = ruleValue.split(",").map(function (s) {
             return s.trim();
@@ -1227,6 +1267,10 @@
     }
 
     async function saveServiceSettings() {
+        var wstlsCheckbox = document.getElementById('nanoswift-wstls-accel');
+        var selectedRadio = document.querySelector('input[name="nanoswift-accel-select"]:checked');
+        var radioValue = selectedRadio ? selectedRadio.value : "0";
+
         await fetchApi("service_settings_set", {
             enabled: document.getElementById("service-enabled").checked,
             delay: parseInt(document.getElementById("service-delay").value) || 10,
@@ -1237,7 +1281,9 @@
             clash_secret: document.getElementById("clash-secret").value,
             clash_port: document.getElementById("clash-port").value || "9090",
             srs_update_enabled: document.getElementById("srs-update-enabled").checked,
-            srs_cron: document.getElementById("srs-cron").value
+            srs_cron: document.getElementById("srs-cron").value,
+            wstls_accel: wstlsCheckbox.checked,
+            wstls_accel_select: radioValue
         });
         updateNodeManagementLink();
     }
@@ -1258,7 +1304,6 @@
         document.getElementById("mg-tags-search").value = "";
         renderGroupTags();
         document.getElementById("modal-group").style.display = "block";
-        // 初始禁用全选/不选按钮
         var selectAllBtn = document.getElementById("mg-select-all-btn");
         var deselectAllBtn = document.getElementById("mg-deselect-all-btn");
         if (selectAllBtn) selectAllBtn.disabled = true;
@@ -1296,7 +1341,6 @@
             type: document.getElementById("mg-type").value,
             members: state.selectedMembers
         };
-        // 保存匹配规则（如果有的话）
         if (matchRule !== "") {
             g.match_rule = matchRule;
         }
@@ -1316,7 +1360,6 @@
         var ruleType = r.rule_type || "srs";
         var ruleValue = r.rule || "";
 
-        // 如果没有明确的 rule_type，尝试自动推断
         if (!r.rule_type && ruleValue) {
             if (ruleValue.match(/^\d+$/)) {
                 ruleType = "port";
@@ -1392,7 +1435,6 @@
 
     function renderRuleOuts() {
         var kw = document.getElementById("mr-outs-search").value;
-        // 默认出口: direct 和 reject
         var outs = ["direct", "reject"];
         for (var i = 0; i < state.groups.length; i++) outs.push(state.groups[i].tag);
         for (var i = 0; i < state.proxyTags.length; i++) outs.push(state.proxyTags[i]);
@@ -1534,11 +1576,9 @@
         var originalText = btn.textContent;
         var countdown = 2;
 
-        // 防抖：禁用按钮
         btn.disabled = true;
         btn.textContent = "请等待 " + countdown + "s...";
 
-        // 倒计时
         var timer = setInterval(function () {
             countdown--;
             if (countdown <= 0) {
@@ -1550,9 +1590,7 @@
             }
         }, 1000);
 
-        // 执行实际操作
         var res = await fetchApi("generate");
-        // alert(res.msg);
     }
 
     async function serviceOp(act) {
@@ -1589,7 +1627,6 @@
         btn.disabled = true;
         btn.innerText = "正在转换...";
         try {
-            // 先保存所有订阅源配置（包括 singbox_nodes）
             await fetchApi("proxies_set", {
                 clash: document.getElementById("clash-subs").value.split("\n").filter(function (s) {
                     return s.trim();
@@ -1599,7 +1636,6 @@
                 }),
                 singbox_nodes: document.getElementById("singbox-nodes").value
             });
-            // 再更新节点池（重新解析所有订阅源 + singbox_nodes，重建节点池）
             var res = await fetchApi("update_proxies");
             alert(res.msg);
             refreshData();
@@ -1636,7 +1672,6 @@
             toggleBtn.style.background = "";
             toggleBtn.style.color = "";
             toggleBtn.style.borderColor = "";
-            // 不清空表达式，保留用户输入的规则
             advancedMatchState.currentExpr = "";
             advancedMatchState.lastMatchedTags = [];
             document.getElementById("mg-match-preview").innerHTML = "";
@@ -1644,7 +1679,6 @@
         }
     }
 
-    // 隐藏高级面板（不清空表达式）
     function hideAdvancedPanel() {
         if (!advancedMatchState.enabled) return;
 
@@ -1658,20 +1692,17 @@
         toggleBtn.style.color = "";
         toggleBtn.style.borderColor = "";
 
-        // 保留输入框内容，只重置匹配状态
         advancedMatchState.currentExpr = "";
         advancedMatchState.lastMatchedTags = [];
         document.getElementById("mg-match-preview").innerHTML = "";
         renderGroupTags();
     }
 
-    // 解析高级匹配表达式
     function parseAdvancedExpr(expr) {
         if (!expr || expr.trim() === "") return null;
 
         expr = expr.trim();
 
-        // Tokenizer
         var tokens = [];
         var i = 0;
         while (i < expr.length) {
@@ -1702,7 +1733,6 @@
             }
         }
 
-        // 解析表达式 (递归下降，处理 or 和 and，and 优先级更高)
         var pos = 0;
 
         function parseOr() {
@@ -1741,10 +1771,10 @@
                 pos++;
                 return {type: 'keyword', value: token.value};
             } else if (token.type === 'paren' && token.value === '(') {
-                pos++; // skip '('
+                pos++;
                 var expr = parseOr();
                 if (pos < tokens.length && tokens[pos].type === 'paren' && tokens[pos].value === ')') {
-                    pos++; // skip ')'
+                    pos++;
                 }
                 return expr;
             }
@@ -1754,7 +1784,6 @@
         return parseOr();
     }
 
-    // 评估表达式是否匹配 tag
     function evalExpr(ast, tag) {
         if (!ast) return true;
 
@@ -1774,7 +1803,6 @@
         }
     }
 
-    // 应用高级匹配
     function applyAdvancedMatch() {
         if (!advancedMatchState.enabled) return;
 
@@ -1816,11 +1844,9 @@
         var preview = document.getElementById("mg-match-preview");
         preview.innerHTML = '匹配: <strong>' + matchedTags.length + '</strong> 个节点';
 
-        // 重新渲染标签，高亮匹配的
         renderGroupTagsWithHighlight(matchedTags);
     }
 
-    // 高亮渲染组标签（匹配到的标签添加特殊样式）
     function renderGroupTagsWithHighlight(matchedTags) {
         var kw = document.getElementById("mg-tags-search").value;
         var matchSet = {};
@@ -1836,13 +1862,10 @@
 
             var extraClass = "";
             if (isSelected && isMatched) {
-                // 同时选中且匹配
                 extraClass = " match-selected";
             } else if (isMatched) {
-                // 匹配但未选中
                 extraClass = " match-highlight";
             } else if (!isSelected) {
-                // 未匹配未选中
                 extraClass = " match-none";
             }
 
@@ -1852,7 +1875,6 @@
         if (kw) filterTags('mg-tags', kw);
     }
 
-    // 快速选中匹配的节点
     function quickSelectMatched() {
         if (advancedMatchState.lastMatchedTags.length === 0) return;
 
@@ -1862,14 +1884,12 @@
                 state.selectedMembers.push(tag);
             }
         }
-        // 关闭高级面板
         if (advancedMatchState.enabled) {
             toggleAdvancedMatch();
         }
         renderGroupTags();
     }
 
-    // 快速取消选中匹配的节点
     function quickDeselectMatched() {
         if (advancedMatchState.lastMatchedTags.length === 0) return;
 
@@ -1880,7 +1900,6 @@
                 state.selectedMembers.splice(idx, 1);
             }
         }
-        // 关闭高级面板
         if (advancedMatchState.enabled) {
             toggleAdvancedMatch();
         }
@@ -1942,7 +1961,6 @@
         var draggedRow = null;
 
         rows.forEach(function (row) {
-            // 拖动手柄事件
             var handle = row.querySelector(".drag-handle");
             if (handle) {
                 handle.addEventListener("mousedown", function (e) {
@@ -1959,12 +1977,10 @@
 
             row.addEventListener("dragend", function (e) {
                 this.classList.remove("dragging");
-                // 移除所有 drag-over 样式
                 rows.forEach(function (r) {
                     r.classList.remove("drag-over");
                 });
                 draggedRow = null;
-                // 恢复 draggable 状态
                 rows.forEach(function (r) {
                     r.draggable = false;
                 });
@@ -1975,7 +1991,6 @@
                 e.dataTransfer.dropEffect = "move";
 
                 if (this !== draggedRow) {
-                    // 移除所有 drag-over
                     rows.forEach(function (r) {
                         r.classList.remove("drag-over");
                     });
@@ -1997,14 +2012,11 @@
                     var targetIndex = allRows.indexOf(this);
 
                     if (draggedIndex > -1 && targetIndex > -1) {
-                        // 更新 state.rulesUI 数组
                         var movedItem = state.rulesUI.splice(draggedIndex, 1)[0];
                         state.rulesUI.splice(targetIndex, 0, movedItem);
 
-                        // 保存到后端
                         fetchApi("rules_ui_set", {rules: state.rulesUI});
 
-                        // 重新渲染表格
                         renderTables();
                     }
                 }
@@ -2012,7 +2024,6 @@
                 return false;
             });
 
-            // 默认不可拖动，只有点击手柄才能拖动
             row.draggable = false;
         });
     }
@@ -2105,11 +2116,12 @@
             } else {
                 statusEl.innerHTML = '<span style="color: red;">\u25CF 已停止</span>';
             }
+
+            updateCarrierListensVisibility();
         } catch (e) {
             console.error("Load CFNAT settings failed:", e);
         }
     }
-
 
     async function refreshCfnatStatus() {
         try {
@@ -2167,6 +2179,21 @@
 
     async function saveCfnatSettings() {
         try {
+            var baiduProxyCheckbox = document.getElementById('cfnat-baidu-proxy');
+            var carrierListensInput = document.getElementById('cfnat-carrier-listens');
+            if (baiduProxyCheckbox && baiduProxyCheckbox.checked && carrierListensInput) {
+                var addrInput = document.getElementById('cfnat-addr');
+                var baseAddr = addrInput.value || '0.0.0.0:2345';
+                var parts = baseAddr.split(':');
+                var host = parts[0] || '0.0.0.0';
+                var port = parseInt(parts[1] || '2345');
+                carrierListensInput.value = [
+                    'telecom=' + host + ':' + (port + 1),
+                    'unicom=' + host + ':' + (port + 2),
+                    'mobile=' + host + ':' + (port + 2)
+                ].join(',');
+            }
+
             await fetchApi("cfnat_settings_set", {
                 enabled: document.getElementById("cfnat-enabled").checked,
                 addr: document.getElementById("cfnat-addr").value,
@@ -2190,6 +2217,162 @@
             console.error("Save CFNAT settings failed:", e);
         }
     }
-</script>
 
+    // ==========================================================================
+    // WS-TLS / CFNAT / 百度前置代理 联动逻辑
+    // ==========================================================================
+    function applyWstlsCfnatLinkage() {
+        var wstlsCheckbox = document.getElementById('nanoswift-wstls-accel');
+        var cfnatCheckbox = document.getElementById('cfnat-enabled');
+        var baiduProxyCheckbox = document.getElementById('cfnat-baidu-proxy');
+        var radioGroup = document.getElementById('wstls-accel-radio-group');
+        var radios = radioGroup ? radioGroup.querySelectorAll('input[type="radio"]') : [];
+        var carrierListensInput = document.getElementById('cfnat-carrier-listens');
+
+        if (!wstlsCheckbox || !cfnatCheckbox || !baiduProxyCheckbox) return;
+
+        wstlsCheckbox.addEventListener('change', function () {
+            if (this.checked) {
+                cfnatCheckbox.checked = true;
+                saveCfnatSettings();
+            }
+        });
+
+        cfnatCheckbox.addEventListener('change', function () {
+            if (!this.checked) {
+                wstlsCheckbox.checked = false;
+                saveServiceSettings();
+            }
+        });
+
+        function updateWstlsRadioState() {
+            var isBaiduProxyEnabled = baiduProxyCheckbox.checked;
+            var isAuto = document.getElementById('wstls-accel-auto');
+
+            radios.forEach(function (radio) {
+                if (isBaiduProxyEnabled) {
+                    radio.disabled = false;
+                    radio.style.pointerEvents = 'auto';
+                    radio.style.opacity = '1';
+                } else {
+                    radio.disabled = true;
+                    radio.style.pointerEvents = 'none';
+                    radio.style.opacity = '0.6';
+                    if (isAuto) {
+                        isAuto.checked = true;
+                    }
+                }
+            });
+        }
+
+        function updateCarrierListensState() {
+            var carrierListensRow = carrierListensInput ? carrierListensInput.closest('.setting-row') : null;
+            if (!carrierListensRow) return;
+
+            if (baiduProxyCheckbox.checked) {
+                carrierListensRow.style.display = 'flex';
+                updateCarrierListensValue();
+            } else {
+                carrierListensRow.style.display = 'none';
+            }
+        }
+
+        function updateCarrierListensValue() {
+            if (!baiduProxyCheckbox.checked) return;
+
+            var addrInput = document.getElementById('cfnat-addr');
+            var baseAddr = addrInput.value || '0.0.0.0:2345';
+
+            var parts = baseAddr.split(':');
+            var host = parts[0] || '0.0.0.0';
+            var portStr = parts[1] || '2345';
+            var port = parseInt(portStr);
+
+            var newListens = [
+                'telecom=' + host + ':' + (port + 1),
+                'unicom=' + host + ':' + (port + 2),
+                'mobile=' + host + ':' + (port + 2)
+            ];
+
+            carrierListensInput.value = newListens.join(',');
+            saveCfnatSettings();
+        }
+
+        baiduProxyCheckbox.addEventListener('change', function () {
+            updateWstlsRadioState();
+            updateCarrierListensState();
+        });
+
+        var cfnatAddrInput = document.getElementById('cfnat-addr');
+        if (cfnatAddrInput) {
+            cfnatAddrInput.addEventListener('change', function () {
+                updateCarrierListensValue();
+            });
+        }
+
+        // 监听 radio 变化并保存
+        radios.forEach(function (radio) {
+            radio.addEventListener('change', function () {
+                saveServiceSettings();
+            });
+        });
+
+        if (carrierListensInput) {
+            carrierListensInput.readOnly = true;
+            carrierListensInput.style.backgroundColor = 'var(--ns-bg-tertiary)';
+            carrierListensInput.style.cursor = 'not-allowed';
+        }
+
+        updateWstlsRadioState();
+        updateCarrierListensState();
+    }
+
+    // ==========================================================================
+    // 根据 cfnat-baidu-proxy 决定 cfnat-carrier-listens 的显示与否
+    // ==========================================================================
+    function updateCarrierListensVisibility() {
+        var baiduProxyCheckbox = document.getElementById('cfnat-baidu-proxy');
+        var carrierListensInput = document.getElementById('cfnat-carrier-listens');
+        if (!baiduProxyCheckbox || !carrierListensInput) return;
+
+        var carrierListensRow = carrierListensInput.closest('.setting-row');
+        if (!carrierListensRow) return;
+
+        if (baiduProxyCheckbox.checked) {
+            carrierListensRow.style.display = 'flex';
+        } else {
+            carrierListensRow.style.display = 'none';
+        }
+        updateWstlsRadioStateByBaiduProxy();
+    }
+
+    // ==========================================================================
+    // 根据 cfnat-baidu-proxy 更新 wstls-accel radio 状态
+    // ==========================================================================
+    function updateWstlsRadioStateByBaiduProxy() {
+        var baiduProxyCheckbox = document.getElementById('cfnat-baidu-proxy');
+        var radioGroup = document.getElementById('wstls-accel-radio-group');
+        var radios = radioGroup ? radioGroup.querySelectorAll('input[type="radio"]') : [];
+        var isAuto = document.getElementById('wstls-accel-auto');
+
+        if (!baiduProxyCheckbox) return;
+
+        var isBaiduProxyEnabled = baiduProxyCheckbox.checked;
+
+        radios.forEach(function (radio) {
+            if (isBaiduProxyEnabled) {
+                radio.disabled = false;
+                radio.style.pointerEvents = 'auto';
+                radio.style.opacity = '1';
+            } else {
+                radio.disabled = true;
+                radio.style.pointerEvents = 'none';
+                radio.style.opacity = '0.6';
+                if (isAuto) {
+                    isAuto.checked = true;
+                }
+            }
+        });
+    }
+</script>
 <%+footer%>
