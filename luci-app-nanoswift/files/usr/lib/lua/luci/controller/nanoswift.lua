@@ -51,8 +51,15 @@ local function apply_wstls_accel(pool, conf)
     cfnat_port = tonumber(cfnat_port)
 
     local accel_select = tonumber(conf.service.wstls_accel_select) or 0
+    local use_baidu_proxy = uci:get("cfnat", "main", "baidu_proxy") == "true"
 
-    local new_port = cfnat_port + accel_select
+    local new_port
+    if not use_baidu_proxy then
+        new_port = cfnat_port
+    else
+        new_port = cfnat_port + accel_select
+    end
+
     local server_ip = (cfnat_ip == "0.0.0.0") and "127.0.0.1" or cfnat_ip
 
     local replaced_count = 0
