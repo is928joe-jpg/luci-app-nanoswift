@@ -1,6 +1,6 @@
 config cfnat 'main'
         option enabled '1'
-        option ipstart '162.159,172.64,104.16,104.18,104.19'
+        option ipstart '162.159,172.64,104.16,104.18-104.19'
         option task '500'
         option ipnum '20'
         option addr '127.0.0.1:2345'

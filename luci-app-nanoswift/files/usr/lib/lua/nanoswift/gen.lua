@@ -44,7 +44,8 @@ local function get_template(work_dir, secret)
                 {
                     rule_set = {
                         "geosite-geolocation-cn",
-                        "geosite-bytedance"
+                        "geosite-bytedance", 
+                        "geosite-netease"
                     },
                     server = "local"
                 },
@@ -89,7 +90,7 @@ local function get_predefined_rule_sets()
     return {
         "geoip-cn", "geosite-geolocation-cn", "geosite-geolocation-!cn",
         "geosite-chinatelecom", "geosite-chinamobile", "geosite-chinaunicom", "geosite-bytedance",
-        "geosite-telegram", "geoip-telegram", "geosite-anthropic" 
+        "geosite-telegram", "geoip-telegram", "geosite-netease"
     }
 end
 
@@ -327,7 +328,7 @@ function _M.generate(opts)
         action = "hijack-dns"
     })
 
-    -- 2. UI reject 规则（紧接在私有IP直连之后）
+    -- 2. UI reject 规则
     for _, rule in ipairs(reject_rules) do
         table.insert(route_rules, rule)
     end
@@ -367,9 +368,10 @@ function _M.generate(opts)
             { rule_set = "geosite-geolocation-cn" },
             { rule_set = "geoip-cn" },
             { rule_set = "geosite-geolocation-!cn", invert = true },
-            { rule_set = "geosite-chinatelecom" },
+            { rule_set = "geosite-chinatelecom" }, 
             { rule_set = "geosite-chinamobile" },
-            { rule_set = "geosite-chinaunicom" }
+            { rule_set = "geosite-chinaunicom" },
+            { rule_set = "geosite-netease" }
         },
         outbound = "direct"
     })
@@ -396,7 +398,7 @@ function _M.generate(opts)
     -- ============================================
     local fixed = { "geosite-telegram", "geoip-telegram", "geosite-geolocation-cn", "geoip-cn",
         "geosite-geolocation-!cn", "geosite-chinatelecom", "geosite-chinamobile",
-        "geosite-chinaunicom", "geosite-bytedance", "geosite-anthropic"  }
+        "geosite-chinaunicom", "geosite-bytedance", "geosite-netease" }
     for _, tag in ipairs(fixed) do used_rule_sets[tag] = true end
     for _, tag in ipairs(get_predefined_rule_sets()) do used_rule_sets[tag] = true end
     for tag in pairs(used_rule_sets) do

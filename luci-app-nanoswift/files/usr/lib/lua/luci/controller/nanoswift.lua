@@ -42,7 +42,7 @@ local function apply_wstls_accel(pool, conf)
     end
 
     local uci = require "luci.model.uci".cursor()
-    local cfnat_addr = uci:get("cfnat", "main", "addr") or "0.0.0.0:2345"
+    local cfnat_addr = uci:get("cfnat", "main", "addr") or "127.0.0.1:2345"
 
     local cfnat_ip, cfnat_port = cfnat_addr:match("^([^:]+):(%d+)$")
     if not cfnat_ip or not cfnat_port then
@@ -53,6 +53,7 @@ local function apply_wstls_accel(pool, conf)
     local accel_select = tonumber(conf.service.wstls_accel_select) or 0
 
     local new_port = cfnat_port + accel_select
+    local server_ip = (cfnat_ip == "0.0.0.0") and "127.0.0.1" or cfnat_ip
 
     local replaced_count = 0
     for _, outbound in ipairs(pool.outbounds or {}) do
@@ -62,7 +63,7 @@ local function apply_wstls_accel(pool, conf)
             and outbound.transport
             and outbound.transport.type == "ws"
         then
-            outbound.server = cfnat_ip
+            outbound.server = server_ip
             outbound.server_port = new_port
             replaced_count = replaced_count + 1
         end
