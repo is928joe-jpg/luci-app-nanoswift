@@ -1,3 +1,6 @@
+-- /usr/lib/lua/nanoswift/gen.lua
+-- v1.0.1
+
 local json = require "luci.jsonc"
 
 local _M = {}
@@ -30,7 +33,7 @@ local function deep_copy(orig)
     return copy
 end
 
-local function get_template(work_dir, secret)
+local function get_template(work_dir, secret, mixed_port)
     local inbound_lan_ip = get_lan_ip()
     return {
         log = { level = "fatal", timestamp = true },
@@ -41,15 +44,9 @@ local function get_template(work_dir, secret)
                 { type = "fakeip", tag = "remote",     inet4_range = "198.18.0.0/15" }
             },
             rules = {
-                {
-                    rule_set = {
-                        "geosite-geolocation-cn",
-                        "geosite-bytedance", 
-                        "geosite-netease"
-                    },
-                    server = "local"
-                },
-                { query_type = "A", server = "remote" }
+                { server = "local",                                             clash_mode = "Direct" },
+                { rule_set = { "geosite-geolocation-cn", "geosite-bytedance" }, server = "local" },
+                { query_type = "A",                                             server = "remote" }
             },
             strategy = "ipv4_only"
         },
@@ -90,8 +87,31 @@ local function get_predefined_rule_sets()
     return {
         "geoip-cn", "geosite-geolocation-cn", "geosite-geolocation-!cn",
         "geosite-chinatelecom", "geosite-chinamobile", "geosite-chinaunicom", "geosite-bytedance",
-        "geosite-telegram", "geoip-telegram", "geosite-netease"
+        "geosite-telegram", "geoip-telegram", "geosite-anthropic", "geosite-cloudflare", "geoip-cloudflare"
     }
+end
+
+-- 检查 outbound 是否有效
+local function is_valid_outbound(outbound, proxy_groups)
+    if outbound == "direct" or outbound == "reject" or outbound == "漏网之鱼" then
+        return true
+    end
+    for _, pg in ipairs(proxy_groups or {}) do
+        if pg.tag == outbound then
+            return true
+        end
+    end
+    return false
+end
+
+-- 检查 tag 是否存在于节点组列表中
+local function is_valid_group_tag(tag, groups)
+    for _, g in ipairs(groups or {}) do
+        if g.tag == tag then
+            return true
+        end
+    end
+    return false
 end
 
 -- 解析单个规则
@@ -146,7 +166,6 @@ end
 
 -- 解析规则（支持多个值，用逗号分隔）
 local function parse_rule(rule_str, outbound)
-    -- 检查是否包含逗号（多个值）
     if rule_str:find(",") then
         local parts = {}
         for part in (rule_str .. ","):gmatch("([^,]+),") do
@@ -176,56 +195,154 @@ function _M.generate(opts)
     opts = opts or {}
     local service = opts.service or {}
 
-    -- 使用 clean_path 统一处理路径
     local work_dir = clean_path(service.work_dir, "/etc/nanoswift/run")
     local rules_path = clean_path(service.rules_path, "/etc/nanoswift/rules") .. "/"
 
     local config = get_template(work_dir, service.clash_secret, service.mixed_port)
 
+    -- ============================================
+    -- 节点去重 + 映射（仅单节点）
+    -- ============================================
     local tag_counter, tag_mapping, new_pool = {}, {}, {}
     for _, node in ipairs(opts.pool or {}) do
         if node and node.tag then
-            local ot = node.tag; local c = tag_counter[ot] or 0; tag_counter[ot] = c + 1
+            local ot = node.tag
+            local c = tag_counter[ot] or 0
+            tag_counter[ot] = c + 1
             local nt = (c > 0) and (ot .. "(" .. c .. ")") or ot
-            if not tag_mapping[ot] then tag_mapping[ot] = {} end; tag_mapping[ot][nt] = true
-            local new_node = deep_copy(node); new_node.tag = nt; table.insert(new_pool, new_node)
+            if not tag_mapping[ot] then tag_mapping[ot] = {} end
+            tag_mapping[ot][nt] = true
+            local new_node = deep_copy(node)
+            new_node.tag = nt
+            table.insert(new_pool, new_node)
         end
     end
+
+    -- 构建完整的 tag 查找函数：单节点 → 节点组 → 分流组 → direct/reject
     local function get_mapped_tag(ot)
         if ot == "direct" then return "direct" end
         if ot == "reject" then return "reject" end
-        if tag_mapping[ot] then for nt, _ in pairs(tag_mapping[ot]) do return nt end end
-        return ot
+
+        -- 先在单节点映射中查找
+        if tag_mapping[ot] then
+            for nt, _ in pairs(tag_mapping[ot]) do return nt end
+        end
+
+        -- 再在节点组中查找
+        if is_valid_group_tag(ot, opts.groups) then
+            return ot
+        end
+
+        -- 再在分流组中查找
+        for _, pg in ipairs(opts.proxy_groups or {}) do
+            if pg.tag == ot then return ot end
+        end
+
+        -- 找不到，返回 nil
+        return nil
     end
 
-    -- 添加 direct 和 reject 出站
+    -- ============================================
+    -- 收集所有节点组 tag（供分流组使用）
+    -- ============================================
+    local all_group_tags = {}
+    for _, g in ipairs(opts.groups or {}) do
+        if g.tag then
+            table.insert(all_group_tags, g.tag)
+        end
+    end
+
+    -- ============================================
+    -- 构建分流组成员模板
+    -- 分流组成员 = 所有节点组 tag + direct + reject
+    -- ============================================
+    local proxy_group_members = deep_copy(all_group_tags)
+    table.insert(proxy_group_members, "direct")
+    table.insert(proxy_group_members, "reject")
+
+    -- ============================================
+    -- 出站构建顺序
+    -- 顺序：direct -> reject -> 分流组 -> 节点组 -> 单节点 -> 漏网之鱼
+    -- ============================================
     config.outbounds = {
         { type = "direct", tag = "direct" },
         { type = "block",  tag = "reject" }
     }
-    for _, node in ipairs(new_pool) do table.insert(config.outbounds, node) end
-    local all_node_tags = {}
-    for _, node in ipairs(new_pool) do table.insert(all_node_tags, node.tag) end
-    for _, g in ipairs(opts.groups or {}) do
-        if g.tag ~= "自动选择" and g.tag ~= "漏网之鱼" then
-            local m = {}
-            for _, mem in ipairs(g.members or {}) do table.insert(m, get_mapped_tag(mem)) end
-            table.insert(config.outbounds,
-                { type = g.type, tag = g.tag, outbounds = m, interrupt_exist_connections = false })
+
+    -- 1. 先输出分流组
+    for _, pg in ipairs(opts.proxy_groups or {}) do
+        if pg.tag then
+            table.insert(config.outbounds, {
+                type = pg.type or "selector",
+                tag = pg.tag,
+                outbounds = deep_copy(proxy_group_members),
+                interrupt_exist_connections = false
+            })
         end
     end
-    if #all_node_tags > 0 then
-        table.insert(config.outbounds, { type = "urltest", tag = "自动选择", outbounds = deep_copy(all_node_tags) })
-        local fo = deep_copy(all_node_tags); table.insert(fo, "direct"); table.insert(fo, "自动选择")
-        table.insert(config.outbounds, { type = "selector", tag = "漏网之鱼", outbounds = fo, default = "自动选择" })
+
+    -- 2. 再输出节点组（过滤无效成员）
+    for _, g in ipairs(opts.groups or {}) do
+        if g.tag and g.members then
+            local m = {}
+            for _, mem in ipairs(g.members) do
+                local mapped = get_mapped_tag(mem)
+                if mapped then
+                    table.insert(m, mapped)
+                end
+            end
+            table.insert(config.outbounds, {
+                type = g.type or "urltest",
+                tag = g.tag,
+                outbounds = m,
+                interrupt_exist_connections = false
+            })
+        end
+    end
+
+    -- 3. 最后输出单节点
+    for _, node in ipairs(new_pool) do
+        table.insert(config.outbounds, node)
+    end
+
+    -- ============================================
+    -- 收集所有节点 tag
+    -- ============================================
+    local all_node_tags = {}
+    for _, node in ipairs(new_pool) do
+        table.insert(all_node_tags, node.tag)
+    end
+
+    -- ============================================
+    -- "漏网之鱼" 兜底
+    -- 成员 = 所有分流组 tag + direct
+    -- ============================================
+    local all_proxy_group_tags = {}
+    for _, pg in ipairs(opts.proxy_groups or {}) do
+        if pg.tag then
+            table.insert(all_proxy_group_tags, pg.tag)
+        end
+    end
+
+    if #all_proxy_group_tags > 0 then
+        local fo = deep_copy(all_proxy_group_tags)
+        table.insert(fo, "direct")
+        local default_tag = all_proxy_group_tags[1]
+        table.insert(config.outbounds, {
+            type = "selector",
+            tag = "漏网之鱼",
+            outbounds = fo,
+            default = default_tag,
+            interrupt_exist_connections = false
+        })
     end
 
     -- ============================================
     -- 扫描 UI 规则，查找电报规则的出口
     -- ============================================
-    local telegram_outbound = "自动选择"
+    local telegram_outbound = "漏网之鱼"
     for _, r in ipairs(opts.rules or {}) do
-        if r.rule and r.outbound and r.outbound ~= "" and r.outbound ~= "自动选择" then
+        if r.rule and r.outbound and r.outbound ~= "" and r.outbound ~= "漏网之鱼" then
             if (r.rule_type or "srs") == "srs" then
                 local rule_str = r.rule .. ","
                 for part in rule_str:gmatch("([^,]+),") do
@@ -233,7 +350,9 @@ function _M.generate(opts)
                     if t then
                         local clean_t = t:gsub("%.srs$", "")
                         if clean_t == "geosite-telegram" or clean_t == "geoip-telegram" then
-                            telegram_outbound = get_mapped_tag(r.outbound)
+                            if is_valid_outbound(r.outbound, opts.proxy_groups) then
+                                telegram_outbound = r.outbound
+                            end
                             break
                         end
                     end
@@ -243,16 +362,16 @@ function _M.generate(opts)
     end
 
     -- ============================================
-    -- 提前解析 UI 规则，分类提取 reject 规则
+    -- 提前解析 UI 规则，分类提取
     -- ============================================
     local used_rule_sets = {}
-    local direct_rules = {} -- 出站为 direct 的规则
-    local reject_rules = {} -- 出站为 reject 的规则（需紧接在私有IP直连之后）
-    local proxy_rules = {}  -- 出站为 proxy/节点组 的规则
+    local direct_rules = {}
+    local reject_rules = {}
+    local proxy_rules = {}
 
     for _, r in ipairs(opts.rules or {}) do
         if r.rule and r.outbound ~= "" then
-            local mapped_out = get_mapped_tag(r.outbound)
+            local mapped_out = r.outbound
             local rule_type = r.rule_type or "srs"
 
             if rule_type == "ip" or rule_type == "port" or rule_type == "port_range"
@@ -260,7 +379,6 @@ function _M.generate(opts)
                 local rule_obj = parse_rule(r.rule, mapped_out)
                 if rule_obj then
                     if mapped_out == "reject" then
-                        -- reject 规则：使用 action 而不是 outbound
                         if rule_obj.type == "logical" then
                             rule_obj.action = "reject"
                             rule_obj.outbound = nil
@@ -272,7 +390,6 @@ function _M.generate(opts)
                     elseif mapped_out == "direct" then
                         table.insert(direct_rules, rule_obj)
                     else
-                        -- 其他规则（proxy）
                         table.insert(proxy_rules, rule_obj)
                     end
                 end
@@ -315,7 +432,7 @@ function _M.generate(opts)
     end
 
     -- ============================================
-    -- 构建路由规则（按顺序）
+    -- 构建路由规则
     -- ============================================
     local route_rules = config.route.rules
 
@@ -333,10 +450,36 @@ function _M.generate(opts)
         table.insert(route_rules, rule)
     end
 
-    -- 3. 私有IP直连
+    -- 3. STUN/WebRTC 拒绝规则
+    table.insert(route_rules, {
+        type = "logical",
+        mode = "or",
+        rules = {
+            { domain_keyword = "stun" },
+            { domain_keyword = "turnstyle" },
+            { domain_keyword = "webrtc" }
+        },
+        action = "reject"
+    })
+
+    table.insert(route_rules, {
+        type = "logical",
+        mode = "or",
+        rules = {
+            { domain_keyword = "stun.l.google.com" },
+            { domain_keyword = "stun1.l.google.com" },
+            { domain_keyword = "stun2.l.google.com" },
+            { domain_keyword = "stun3.l.google.com" },
+            { domain_keyword = "stun4.l.google.com" }
+        },
+        action = "reject"
+    })
+
+    -- 4. 私有IP直连
+    table.insert(route_rules, { outbound = "direct", clash_mode = "Direct" })
     table.insert(route_rules, { ip_is_private = true, outbound = "direct" })
 
-    -- 4. 电报规则
+    -- 5. 电报规则
     table.insert(route_rules, {
         type = "logical",
         mode = "or",
@@ -347,7 +490,7 @@ function _M.generate(opts)
         outbound = telegram_outbound
     })
 
-    -- 5. 固定拒绝规则
+    -- 6. 固定拒绝规则
     table.insert(route_rules, {
         type = "logical",
         mode = "or",
@@ -360,7 +503,7 @@ function _M.generate(opts)
         action = "reject"
     })
 
-    -- 6. 国内直连规则
+    -- 7. 国内直连规则
     table.insert(route_rules, {
         type = "logical",
         mode = "or",
@@ -368,25 +511,24 @@ function _M.generate(opts)
             { rule_set = "geosite-geolocation-cn" },
             { rule_set = "geoip-cn" },
             { rule_set = "geosite-geolocation-!cn", invert = true },
-            { rule_set = "geosite-chinatelecom" }, 
+            { rule_set = "geosite-chinatelecom" },
             { rule_set = "geosite-chinamobile" },
-            { rule_set = "geosite-chinaunicom" },
-            { rule_set = "geosite-netease" }
+            { rule_set = "geosite-chinaunicom" }
         },
         outbound = "direct"
     })
 
-    -- 7. UI direct 类规则
+    -- 8. UI direct 类规则
     for _, rule in ipairs(direct_rules) do
         table.insert(route_rules, rule)
     end
 
-    -- 8. UI proxy 分流规则
+    -- 9. UI proxy 分流规则
     for _, rule in ipairs(proxy_rules) do
         table.insert(route_rules, rule)
     end
 
-    -- 9. 最后的 outbound 规则
+    -- 10. 最后的兜底规则
     table.insert(route_rules, {
         network = "tcp",
         rule_set = "geosite-geolocation-!cn",
@@ -398,7 +540,7 @@ function _M.generate(opts)
     -- ============================================
     local fixed = { "geosite-telegram", "geoip-telegram", "geosite-geolocation-cn", "geoip-cn",
         "geosite-geolocation-!cn", "geosite-chinatelecom", "geosite-chinamobile",
-        "geosite-chinaunicom", "geosite-bytedance", "geosite-netease" }
+        "geosite-chinaunicom", "geosite-bytedance", "geosite-anthropic", "geosite-cloudflare", "geoip-cloudflare" }
     for _, tag in ipairs(fixed) do used_rule_sets[tag] = true end
     for _, tag in ipairs(get_predefined_rule_sets()) do used_rule_sets[tag] = true end
     for tag in pairs(used_rule_sets) do

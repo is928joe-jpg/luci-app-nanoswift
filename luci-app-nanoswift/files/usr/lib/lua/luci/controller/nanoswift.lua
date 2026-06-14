@@ -1,4 +1,5 @@
 -- /usr/lib/lua/luci/controller/nanoswift.lua
+-- v1.0.1
 
 module("luci.controller.nanoswift", package.seeall)
 
@@ -26,9 +27,7 @@ local function clean_path(path, default)
     if not path or path == "" then
         return default
     end
-    -- 去除首尾空格
     path = path:gsub("^%s+", ""):gsub("%s+$", "")
-    -- 去除末尾斜杠
     path = path:gsub("/+$", "")
     return path
 end
@@ -93,6 +92,8 @@ function index()
     entry({ "admin", "services", "nanoswift", "proxies_remove" }, call("proxies_remove"))
     entry({ "admin", "services", "nanoswift", "groups_get" }, call("groups_get"))
     entry({ "admin", "services", "nanoswift", "groups_set" }, call("groups_set"))
+    entry({ "admin", "services", "nanoswift", "proxy_groups_get" }, call("proxy_groups_get"))
+    entry({ "admin", "services", "nanoswift", "proxy_groups_set" }, call("proxy_groups_set"))
     entry({ "admin", "services", "nanoswift", "config_rules_get" }, call("config_rules_get"))
     entry({ "admin", "services", "nanoswift", "rules_ui_get" }, call("rules_ui_get"))
     entry({ "admin", "services", "nanoswift", "rules_ui_set" }, call("rules_ui_set"))
@@ -130,6 +131,7 @@ local function load_conf()
             },
             subscriptions = { clash = {}, v2ray = {}, singbox_nodes = "" },
             groups = {},
+            proxy_groups = {},
             rules = {},
         }
     end
@@ -160,6 +162,9 @@ local function load_conf()
     end
     if not data.groups then
         data.groups = {}
+    end
+    if not data.proxy_groups then
+        data.proxy_groups = {}
     end
     if not data.rules then
         data.rules = {}
@@ -270,9 +275,14 @@ local function pool_tags(pool)
     return tags
 end
 
+-- ============================================================
+--  节点更新后清理失效引用
+--  v1.0.1: 同时清理 groups.members 和 rules.outbound 中的无效引用
+-- ============================================================
 local function purge_removed(conf, removed_tags)
     local result = { groups = 0, members = 0, rules = 0 }
 
+    -- 清理节点组成员中的失效节点
     for _, g in ipairs(conf.groups or {}) do
         if g and g.members then
             local members, changed = {}, false
@@ -291,10 +301,16 @@ local function purge_removed(conf, removed_tags)
         end
     end
 
+    -- 清理 rules.outbound 中指向已删除节点的引用
+    -- direct 和 reject 是保留字，分流组名不在此清理
     for _, r in ipairs(conf.rules or {}) do
-        if r and r.outbound and r.outbound ~= "" and removed_tags[r.outbound] then
-            r.outbound = ""
-            result.rules = result.rules + 1
+        if r and r.outbound and r.outbound ~= "" then
+            if r.outbound ~= "direct" and r.outbound ~= "reject" then
+                if removed_tags[r.outbound] then
+                    r.outbound = ""
+                    result.rules = result.rules + 1
+                end
+            end
         end
     end
 
@@ -304,16 +320,18 @@ end
 -- ============================================================
 --  核心 API 实现
 -- ============================================================
+
+-- 服务设定 - 读取
 function service_settings_get()
     luci.http.prepare_content("application/json")
     luci.http.write_json(load_conf().service)
 end
 
+-- 服务设定 - 保存
 function service_settings_set()
     local data = json.parse(luci.http.content())
     local conf = load_conf()
 
-    -- 清理所有路径
     local work_dir = clean_path(data.work_dir, "/etc/nanoswift/run")
     local rules_path = clean_path(data.rules_path, "/etc/nanoswift/rules") .. "/"
     local singbox_bin = clean_path(data.singbox_bin, "/usr/bin/sing-box")
@@ -336,7 +354,6 @@ function service_settings_set()
     }
     save_conf(conf)
 
-    -- 管理 SRS 更新 cron 任务
     update_srs_cron(
         conf.service.srs_update_enabled,
         conf.service.srs_cron,
@@ -344,7 +361,6 @@ function service_settings_set()
         conf.service.srs_bin
     )
 
-    -- 配置 sing-box 服务
     if conf.service.enabled then
         configure_singbox_uci(conf)
         enable_singbox_service(true)
@@ -356,6 +372,7 @@ function service_settings_set()
     luci.http.write_json({ ok = true })
 end
 
+-- 更新节点池
 function update_proxies()
     local ok, result = pcall(function()
         local conf = load_conf()
@@ -394,7 +411,6 @@ function update_proxies()
             run_convert(s, "v2ray", s:match("^https?://") ~= nil)
         end
 
-        -- singbox_nodes 添加入节点池
         if conf.subscriptions.singbox_nodes and conf.subscriptions.singbox_nodes ~= "" then
             local ok_sb, node_data = pcall(json.parse, conf.subscriptions.singbox_nodes)
             if ok_sb and node_data and node_data.outbounds then
@@ -404,7 +420,7 @@ function update_proxies()
             end
         end
 
-        -- 处理 static 目录下的静态节点文件
+        -- static 目录
         local singbox_bin = conf.service.singbox_bin or "/usr/bin/sing-box"
         local static_merged = "/tmp/statics.json"
         if not fs.access(STATIC_DIR) then
@@ -500,6 +516,7 @@ function update_proxies()
     luci.http.write_json(ok and result or { msg = "更新失败: " .. tostring(result), error = true })
 end
 
+-- 生成配置
 function action_generate()
     local success, result = pcall(function()
         local conf = load_conf()
@@ -509,6 +526,7 @@ function action_generate()
         local final = gen.generate({
             service = conf.service,
             groups = conf.groups,
+            proxy_groups = conf.proxy_groups,
             rules = conf.rules,
             pool = pool.outbounds or {},
         })
@@ -548,6 +566,7 @@ function action_generate()
     luci.http.write_json(success and result or { ok = false, msg = tostring(result) })
 end
 
+-- 订阅数据 - 读取
 function proxies_get()
     luci.http.prepare_content("application/json")
     local conf = load_conf()
@@ -558,6 +577,7 @@ function proxies_get()
     })
 end
 
+-- 订阅数据 - 保存
 function proxies_set()
     local data = json.parse(luci.http.content())
     local conf = load_conf()
@@ -571,6 +591,7 @@ function proxies_set()
     luci.http.write_json({ ok = true })
 end
 
+-- 节点标签列表
 function proxy_tags()
     local pool = load_pool()
     local tags = {}
@@ -583,6 +604,7 @@ function proxy_tags()
     luci.http.write_json({ tags = tags })
 end
 
+-- 移除节点
 function proxies_remove()
     local data = json.parse(luci.http.content())
     local rm = {}
@@ -606,11 +628,13 @@ function proxies_remove()
     luci.http.write_json({ ok = true, msg = "已移除并清理" })
 end
 
+-- 节点组 - 读取
 function groups_get()
     luci.http.prepare_content("application/json")
     luci.http.write_json({ groups = load_conf().groups or {} })
 end
 
+-- 节点组 - 保存
 function groups_set()
     local data = json.parse(luci.http.content())
     local conf = load_conf()
@@ -620,11 +644,38 @@ function groups_set()
     luci.http.write_json({ ok = true })
 end
 
+-- 分流组 - 读取 (v1.0.1 新增)
+function proxy_groups_get()
+    luci.http.prepare_content("application/json")
+    local conf = load_conf()
+    local pg = conf.proxy_groups or {}
+    -- 确保返回数组
+    local result = {}
+    if type(pg) == "table" then
+        for i = 1, #pg do
+            table.insert(result, pg[i])
+        end
+    end
+    luci.http.write_json({ proxy_groups = result })
+end
+
+-- 分流组 - 保存 (v1.0.1 新增)
+function proxy_groups_set()
+    local data = json.parse(luci.http.content())
+    local conf = load_conf()
+    conf.proxy_groups = data.proxy_groups or {}
+    save_conf(conf)
+    luci.http.prepare_content("application/json")
+    luci.http.write_json({ ok = true })
+end
+
+-- 分流规则 - 读取
 function rules_ui_get()
     luci.http.prepare_content("application/json")
     luci.http.write_json({ rules = load_conf().rules or {} })
 end
 
+-- 分流规则 - 保存
 function rules_ui_set()
     local data = json.parse(luci.http.content())
     local conf = load_conf()
@@ -634,6 +685,7 @@ function rules_ui_set()
     luci.http.write_json({ ok = true })
 end
 
+-- 可用 SRS 规则列表
 function config_rules_get()
     local lines = {}
     local f = io.open(SRC_RULES_FILE, "r")
@@ -650,6 +702,7 @@ function config_rules_get()
     luci.http.write_json({ lines = lines })
 end
 
+-- 服务控制
 function service_control()
     local data = json.parse(luci.http.content())
     if data and data.action then
@@ -774,7 +827,6 @@ function config_backup_restore()
         return
     end
 
-    -- 获取 boundary
     local content_type = luci.http.getenv("CONTENT_TYPE")
         or os.getenv("CONTENT_TYPE")
         or ""
@@ -791,24 +843,19 @@ function config_backup_restore()
         return
     end
 
-    -- 手动提取文件内容
     local boundary_marker = "--" .. boundary
     local file_content = nil
 
-    -- 查找文件部分
     local start_pos = raw_body:find(boundary_marker, 1, true)
     if start_pos then
-        -- 跳到下一行
         local line_end = raw_body:find("\r\n", start_pos, true)
         if line_end then
             local headers_start = line_end + 2
 
-            -- 查找双换行（头部结束）
             local body_start = raw_body:find("\r\n\r\n", headers_start, true)
             if body_start then
                 body_start = body_start + 4
 
-                -- 查找下一个 boundary
                 local next_boundary = raw_body:find(
                     "\r\n" .. boundary_marker,
                     body_start,
@@ -826,13 +873,12 @@ function config_backup_restore()
         luci.http.write([[
 <!DOCTYPE html>
 <html><head><meta charset="utf-8"><title>错误</title>
-<script>alert("无法提取文件内容，数据长度：" + ]] .. tostring(#raw_body) .. [[ + "。");window.history.back();</script>
+<script>alert("无法提取文件内容。");window.history.back();</script>
 </head><body></body></html>
         ]])
         return
     end
 
-    -- 保存文件
     local f = io.open(tmp_upload, "wb")
     if not f then
         luci.http.header("Content-Type", "text/html; charset=utf-8")
@@ -847,7 +893,6 @@ function config_backup_restore()
     f:write(file_content)
     f:close()
 
-    -- 验证是否为有效的 tar.gz 文件
     local check_ret = os.execute(
         string.format("tar -tzf %s >/dev/null 2>&1", tmp_upload)
     )
@@ -863,10 +908,8 @@ function config_backup_restore()
         return
     end
 
-    -- 创建临时解压目录
     os.execute("mkdir -p " .. tmp_extract)
 
-    -- 解压 tar 包
     local ret = os.execute(
         string.format("tar -xzf %s -C %s 2>/dev/null", tmp_upload, tmp_extract)
     )
@@ -883,7 +926,6 @@ function config_backup_restore()
         return
     end
 
-    -- 检查解压后的文件结构
     if not fs.access(tmp_extract .. "/configure.json") then
         os.execute("rm -rf " .. tmp_extract)
         os.remove(tmp_upload)
@@ -902,7 +944,6 @@ function config_backup_restore()
         restore_map[tar_name] = src_path
     end
 
-    -- 1. 覆盖 configure.json
     local conf_data = fs.readfile(tmp_extract .. "/configure.json")
     if not conf_data then
         os.execute("rm -rf " .. tmp_extract)
@@ -917,7 +958,6 @@ function config_backup_restore()
         return
     end
 
-    -- 验证 JSON 格式
     local ok_json = pcall(json.parse, conf_data)
     if not ok_json then
         os.execute("rm -rf " .. tmp_extract)
@@ -932,10 +972,8 @@ function config_backup_restore()
         return
     end
 
-    -- 写入配置文件
     fs.writefile(restore_map["configure.json"], conf_data)
 
-    -- 2. 清空并恢复 static 目录
     local static_src = tmp_extract .. "/static"
     if fs.access(static_src) and fs.stat(static_src, "type") == "dir" then
         local static_dest = restore_map["static"]
@@ -949,7 +987,6 @@ function config_backup_restore()
         )
     end
 
-    -- 3. 恢复 profile/proxies.json
     local proxies_src = tmp_extract .. "/proxies.json"
     if fs.access(proxies_src) then
         local proxies_dest = restore_map["proxies.json"]
@@ -962,7 +999,6 @@ function config_backup_restore()
         )
     end
 
-    -- 4. 恢复 run/config.json
     local config_src = tmp_extract .. "/config.json"
     if fs.access(config_src) then
         local config_dest = restore_map["config.json"]
@@ -975,7 +1011,6 @@ function config_backup_restore()
         )
     end
 
-    -- 5. 恢复 /etc/config/cfnat
     local cfnat_src = tmp_extract .. "/cfnat"
     if fs.access(cfnat_src) then
         local cfnat_dest = restore_map["cfnat"]
@@ -989,11 +1024,9 @@ function config_backup_restore()
         end
     end
 
-    -- 清理临时文件
     os.execute("rm -rf " .. tmp_extract)
     os.remove(tmp_upload)
 
-    -- 返回成功的 HTML 响应
     luci.http.header("Content-Type", "text/html; charset=utf-8")
     luci.http.write([[
 <!DOCTYPE html>
@@ -1035,7 +1068,6 @@ function cfnat_settings_get()
     data.carrier_listens = uci:get("cfnat", "main", "carrier_listens") or ""
     data.workdir = uci:get("cfnat", "main", "workdir") or "/etc/nanoswift/run"
 
-    -- 检查服务运行状态
     local pid = sys.call("pgrep cfnat >/dev/null 2>&1")
     data.running = (pid == 0)
 
@@ -1083,7 +1115,6 @@ function cfnat_settings_set()
 
     uci:commit("cfnat")
 
-    -- 根据启用状态控制服务
     if enabled then
         os.execute("uci set cfnat.main.enabled='1'")
         os.execute("uci commit cfnat")

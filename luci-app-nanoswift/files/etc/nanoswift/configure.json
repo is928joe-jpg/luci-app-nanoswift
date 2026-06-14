@@ -1,4 +1,56 @@
 {
+  "rules": [
+    {
+      "outbound": "AI分流",
+      "rule": "geosite-xai.srs,geosite-google-gemini.srs,geosite-openai.srs,geosite-anthropic.srs",
+      "rule_type": "srs"
+    },
+    {
+      "outbound": "流媒体分流",
+      "rule": "geoip-netflix.srs,geosite-netflix.srs,geosite-disney.srs,geosite-hinet-eca.srs,geosite-hinet.srs,geosite-youtube.srs",
+      "rule_type": "srs"
+    },
+    {
+      "outbound": "下载分流",
+      "rule": "geosite-github.srs,geosite-docker.srs",
+      "rule_type": "srs"
+    },
+    {
+      "outbound": "通信分流",
+      "rule": "geoip-telegram.srs,geosite-telegram.srs,geosite-azure.srs,geosite-azure@cn.srs",
+      "rule_type": "srs"
+    },
+    {
+      "outbound": "CF分流",
+      "rule": "geoip-cloudflare.srs,geosite-cloudflare-ipfs.srs,geosite-cloudflare.srs",
+      "rule_type": "srs"
+    },
+    {
+      "outbound": "Microsoft分流",
+      "rule": "geosite-microsoft-dev.srs,geosite-microsoft.srs,geosite-microsoft-dev@cn.srs,geosite-microsoft-pki.srs,geosite-microsoft@cn.srs,geosite-microsoft-pki@cn.srs",
+      "rule_type": "srs"
+    }
+  ],
+  "groups": [
+    {
+      "tag": "AI节点",
+      "type": "urltest",
+      "members": [],
+      "match_rule": ""
+    },
+    {
+      "tag": "甲骨文节点",
+      "type": "urltest",
+      "members": [],
+      "match_rule": "oracle"
+    },
+    {
+      "match_rule": "",
+      "type": "urltest",
+      "members": [],
+      "tag": "CF节点"
+    }
+  ],
   "service": {
     "enabled": true,
     "wstls_accel": true,
@@ -7,7 +59,7 @@
     "work_dir": "\/etc\/nanoswift\/run",
     "srs_bin": "\/usr\/bin\/srs",
     "mixed_port": "1080",
-    "wstls_accel_select": "0",
+    "wstls_accel_select": "2",
     "srs_cron": "0 4 *\/10 * *",
     "rules_path": "\/etc\/nanoswift\/rules\/",
     "srs_update_enabled": true,
@@ -19,40 +71,36 @@
     "v2ray": [],
     "singbox_nodes": ""
   },
-  "groups": [
+  "proxy_groups": [
     {
       "type": "selector",
-      "members": [],
-      "tag": "免费节点"
+      "srs": "",
+      "tag": "流媒体分流"
     },
     {
       "type": "selector",
-      "members": [],
-      "tag": "付费节点"
-    }
-  ],
-  "rules": [
-    {
-      "rule": "geosite-openai.srs, geosite-google-gemini.srs, geoip-ai.srs, geosite-bing.srs, geosite-xai.srs, geoip-twitter.srs, geosite-anthropic.srs, geosite-twitter.srs",
-      "outbound": "付费节点"
+      "srs": "",
+      "tag": "下载分流"
     },
     {
-      "rule": "geoip-google.srs,geosite-google.srs,geoip-facebook.srs,geosite-facebook.srs,geosite-facebook-dev.srs,geoip-netflix.srs,geosite-netflix.srs,geosite-youtube.srs",
-      "outbound": "免费节点"
+      "type": "selector",
+      "srs": "",
+      "tag": "通信分流"
     },
     {
-      "outbound": "付费节点",
-      "rule": "geosite-github.srs"
+      "type": "selector",
+      "srs": "",
+      "tag": "CF分流"
     },
     {
-      "outbound": "reject",
-      "rule": "\"stun\",\"turnstyle\",\"webrtc\"",
-      "rule_type": "domain_keyword"
+      "type": "selector",
+      "srs": "",
+      "tag": "AI分流"
     },
     {
-      "outbound": "reject",
-      "rule": "\"stun.l.google.com\",\"stun1.l.google.com\",\"stun2.l.google.com\",\"stun3.l.google.com\",\"stun4.l.google.com\"",
-      "rule_type": "domain_suffix"
+      "type": "selector",
+      "srs": "",
+      "tag": "Microsoft分流"
     }
   ]
 }

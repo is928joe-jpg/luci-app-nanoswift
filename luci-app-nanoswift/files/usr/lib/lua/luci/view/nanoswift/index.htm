@@ -420,29 +420,6 @@
         border-color: var(--ns-primary-dark) !important;
     }
 
-    .tag-btn {
-        background: var(--ns-tag-bg) !important;
-        border: 1px solid var(--ns-border);
-        padding: 4px 10px;
-        border-radius: 3px;
-        cursor: pointer;
-        font-size: 12px;
-        color: var(--ns-text);
-        transition: all 0.2s;
-        user-select: none;
-    }
-
-    .tag-btn:hover {
-        background: var(--ns-tag-hover) !important;
-        border-color: var(--ns-primary-dark);
-    }
-
-    .tag-btn.active {
-        background: var(--ns-primary-dark) !important;
-        color: #fff !important;
-        border-color: var(--ns-primary-dark) !important;
-    }
-
     .tag-btn.match-highlight {
         border: 1px solid #28a745 !important;
         background: var(--ns-tag-bg) !important;
@@ -620,196 +597,205 @@
 <div id="nanoswift-app">
     <!-- ==================== 服务设定 ==================== -->
     <div class="ns-section">
-        <div class="ns-title" style="display: flex; justify-content: space-between; align-items: center;">
+        <div class="ns-title collapsible-title" onclick="toggleCollapse('service-content', this)" style="border-bottom: 2px solid var(--ns-primary-dark);">
             <span>服务设定</span>
             <span style="display: flex; align-items: center; gap: 20px;">
                 <span id="clash-api-status" style="font-size: 14px; font-weight: normal;"></span>
+                <svg class="collapse-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
             </span>
         </div>
-        <div class="service-settings">
-            <div class="setting-row">
-                <div class="checkbox-label">
-                    <input id="service-enabled" onchange="saveServiceSettings()" type="checkbox">
-                    <span>开机自启服务</span>
+        <div class="collapsible-content" id="service-content" style="max-height: 2000px;">
+            <div class="service-settings">
+                <div class="setting-row">
+                    <div class="checkbox-label">
+                        <input id="service-enabled" onchange="saveServiceSettings()" type="checkbox">
+                        <span>开机自启服务</span>
+                    </div>
                 </div>
-            </div>
-            <div class="setting-row">
-                <div class="path-input">
-                    <label>延时(秒):</label>
-                    <input id="service-delay" min="0" onchange="saveServiceSettings()" style="width:60px;" type="number">
+                <div class="setting-row">
+                    <div class="path-input">
+                        <label>延时(秒):</label>
+                        <input id="service-delay" min="0" onchange="saveServiceSettings()" style="width:60px;" type="number">
+                    </div>
+                    <div class="path-input">
+                        <label>Mixed代理:</label>
+                        <input id="mixed-port" max="65535" min="1" onchange="saveServiceSettings()" style="width:80px;" type="number">
+                    </div>
+                    <div class="path-input">
+                        <label>Clash API 密钥:</label>
+                        <input id="clash-secret" onchange="saveServiceSettings(); updateNodeManagementLink();" style="width:150px;" type="text">
+                    </div>
+                    <div class="path-input">
+                        <label>Clash API 端口:</label>
+                        <input id="clash-port" max="65535" min="1" onchange="saveServiceSettings(); updateNodeManagementLink();" style="width:80px;" type="number">
+                    </div>
                 </div>
-                <div class="path-input">
-                    <label>Mixed代理:</label>
-                    <input id="mixed-port" max="65535" min="1" onchange="saveServiceSettings()" style="width:80px;" type="number">
+                <div class="setting-row">
+                    <div class="path-input">
+                        <label>Sing-Box 执行文件路径:</label>
+                        <input id="singbox-bin" onchange="saveServiceSettings()" style="width:250px;" type="text">
+                    </div>
+                    <div class="path-input">
+                        <label>工作目录:</label>
+                        <input id="singbox-workdir" onchange="saveServiceSettings()" style="width:250px;" type="text">
+                    </div>
                 </div>
-                <div class="path-input">
-                    <label>Clash API 密钥:</label>
-                    <input id="clash-secret" onchange="saveServiceSettings(); updateNodeManagementLink();" style="width:150px;" type="text">
+                <div class="setting-row">
+                    <div class="checkbox-label">
+                        <input id="srs-update-enabled" onchange="onSrsUpdateToggle()" type="checkbox">
+                        <span>规则自动更新</span>
+                    </div>
+                    <div class="path-input" id="srs-update-settings" style="display:none;">
+                        <label>Cron:</label>
+                        <input id="srs-cron" onchange="saveServiceSettings()" style="width:120px;" type="text">
+                    </div>
+                    <div class="path-input">
+                        <label>SRS 规则存储路径:</label>
+                        <input id="rules-path" onchange="saveServiceSettings()" style="width:350px;" type="text">
+                    </div>
                 </div>
-                <div class="path-input">
-                    <label>Clash API 端口:</label>
-                    <input id="clash-port" max="65535" min="1" onchange="saveServiceSettings(); updateNodeManagementLink();" style="width:80px;" type="number">
-                </div>
-            </div>
-            <div class="setting-row">
-                <div class="path-input">
-                    <label>Sing-Box 执行文件路径:</label>
-                    <input id="singbox-bin" onchange="saveServiceSettings()" style="width:250px;" type="text">
-                </div>
-                <div class="path-input">
-                    <label>工作目录:</label>
-                    <input id="singbox-workdir" onchange="saveServiceSettings()" style="width:250px;" type="text">
-                </div>
-            </div>
-            <div class="setting-row">
-                <div class="checkbox-label">
-                    <input id="srs-update-enabled" onchange="onSrsUpdateToggle()" type="checkbox">
-                    <span>规则自动更新</span>
-                </div>
-                <div class="path-input" id="srs-update-settings" style="display:none;">
-                    <label>Cron:</label>
-                    <input id="srs-cron" onchange="saveServiceSettings()" style="width:120px;" type="text">
-                </div>
-                <div class="path-input">
-                    <label>SRS 规则存储路径:</label>
-                    <input id="rules-path" onchange="saveServiceSettings()" style="width:350px;" type="text">
-                </div>
-            </div>
 
-            <div class="setting-row">
-                <div class="checkbox-label">
-                    <input id="nanoswift-wstls-accel" onchange="saveServiceSettings()" type="checkbox">
-                    <span>对 WS-TLS 节点加速</span>
+                <div class="setting-row">
+                    <div class="checkbox-label">
+                        <input id="nanoswift-wstls-accel" onchange="saveServiceSettings()" type="checkbox">
+                        <span>对 WS-TLS 节点加速</span>
+                    </div>
+                    <div class="setting-row" id="wstls-accel-radio-group">
+                        <label>
+                            <input checked id="wstls-accel-auto" name="nanoswift-accel-select" type="radio" value="0">
+                            auto
+                        </label>
+                        <label>
+                            <input id="wstls-accel-telecom" name="nanoswift-accel-select" type="radio" value="1">
+                            telecom
+                        </label>
+                        <label>
+                            <input id="wstls-accel-unicom" name="nanoswift-accel-select" type="radio" value="2">
+                            unicom
+                        </label>
+                        <label>
+                            <input id="wstls-accel-mobile" name="nanoswift-accel-select" type="radio" value="3">
+                            mobile
+                        </label>
+                    </div>
                 </div>
-                <div class="setting-row" id="wstls-accel-radio-group">
-                    <label>
-                        <input checked id="wstls-accel-auto" name="nanoswift-accel-select" type="radio" value="0">
-                        auto
-                    </label>
-                    <label>
-                        <input id="wstls-accel-telecom" name="nanoswift-accel-select" type="radio" value="1">
-                        telecom
-                    </label>
-                    <label>
-                        <input id="wstls-accel-unicom" name="nanoswift-accel-select" type="radio" value="2">
-                        unicom
-                    </label>
-                    <label>
-                        <input id="wstls-accel-mobile" name="nanoswift-accel-select" type="radio" value="3">
-                        mobile
-                    </label>
+
+                <div class="setting-row">
+                    <div class="checkbox-label">
+                        <a href="#" id="node-management-link" style="font-size: 14px; font-weight: normal; text-decoration: none; border-bottom: none; padding: 0;" target="_blank">
+                            进入节点管理面板
+                        </a>
+                    </div>
                 </div>
+
             </div>
-
-            <div class="setting-row">
-                <div class="checkbox-label">
-                    <a href="#" id="node-management-link" style="font-size: 14px; font-weight: normal; text-decoration: none; border-bottom: none; padding: 0;" target="_blank">
-                        进入节点管理面板
-                    </a>
-                </div>
-            </div>
-
-
         </div>
     </div>
 
     <!-- ==================== CFNAT 设置 ==================== -->
     <div class="ns-section">
-        <div class="ns-title" style="display: flex; justify-content: space-between; align-items: center;">
+        <div class="ns-title collapsible-title" onclick="toggleCollapse('cfnat-content', this)" style="border-bottom: 2px solid var(--ns-primary-dark);">
             <span>CFNAT 设置</span>
-            <span id="cfnat-status" style="font-size: 14px; font-weight: normal;"></span>
+            <span style="display: flex; align-items: center; gap: 20px;">
+                <span id="cfnat-status" style="font-size: 14px; font-weight: normal;"></span>
+                <svg class="collapse-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </span>
         </div>
-        <div class="service-settings">
-            <div class="setting-row">
-                <div class="checkbox-label">
-                    <input id="cfnat-enabled" onchange="saveCfnatSettings()" type="checkbox">
-                    <span>启用 CFNAT</span>
+        <div class="collapsible-content collapsed" id="cfnat-content" style="max-height: 2000px;">
+            <div class="service-settings">
+                <div class="setting-row">
+                    <div class="checkbox-label">
+                        <input id="cfnat-enabled" onchange="saveCfnatSettings()" type="checkbox">
+                        <span>启用 CFNAT</span>
+                    </div>
                 </div>
-            </div>
-            <div class="setting-row">
-                <div class="path-input">
-                    <label>监听地址:</label>
-                    <input id="cfnat-addr" onchange="saveCfnatSettings()" placeholder="0.0.0.0:2345" style="width:150px;" type="text">
+                <div class="setting-row">
+                    <div class="path-input">
+                        <label>监听地址:</label>
+                        <input id="cfnat-addr" onchange="saveCfnatSettings()" placeholder="0.0.0.0:2345" style="width:150px;" type="text">
+                    </div>
+                    <div class="path-input">
+                        <label>数据中心:</label>
+                        <input id="cfnat-colo" onchange="this.value = this.value.toUpperCase(); saveCfnatSettings()" placeholder="NRT" style="width:100px; text-transform: uppercase;" type="text">
+                        <span> 常用 NRT,SIN,HKG,SJC,LAX </span>
+                    </div>
                 </div>
-                <div class="path-input">
-                    <label>数据中心:</label>
-                    <input id="cfnat-colo" onchange="this.value = this.value.toUpperCase(); saveCfnatSettings()" placeholder="NRT" style="width:100px; text-transform: uppercase;" type="text">
-                    <span> 常用 NRT,SIN,HKG,SJC,LAX </span>
+                <div class="setting-row">
+                    <div class="path-input">
+                        <label>IP起始段:</label>
+                        <input id="cfnat-ipstart" onchange="saveCfnatSettings()" placeholder="162.159,172.64" style="width:200px;" type="text">
+                    </div>
+                    <div class="path-input">
+                        <label>扫描线程:</label>
+                        <input id="cfnat-task" max="2048" min="1" onchange="saveCfnatSettings()" style="width:80px;" type="number">
+                    </div>
+                    <div class="path-input">
+                        <label>有效IP数:</label>
+                        <input id="cfnat-ipnum" min="1" onchange="saveCfnatSettings()" style="width:80px;" type="number">
+                    </div>
                 </div>
-            </div>
-            <div class="setting-row">
-                <div class="path-input">
-                    <label>IP起始段:</label>
-                    <input id="cfnat-ipstart" onchange="saveCfnatSettings()" placeholder="162.159,172.64" style="width:200px;" type="text">
+                <div class="setting-row">
+                    <div class="path-input">
+                        <label>延迟阈值(ms):</label>
+                        <input id="cfnat-delay" min="0" onchange="saveCfnatSettings()" style="width:80px;" type="number">
+                    </div>
+                    <div class="path-input">
+                        <label>连接尝试:</label>
+                        <input id="cfnat-num" min="1" onchange="saveCfnatSettings()" style="width:80px;" type="number">
+                    </div>
+                    <div class="path-input">
+                        <label>IP版本:</label>
+                        <select id="cfnat-ips" onchange="saveCfnatSettings()" style="width:60px;">
+                            <option value="4">4</option>
+                            <option value="6">6</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="path-input">
-                    <label>扫描线程:</label>
-                    <input id="cfnat-task" max="2048" min="1" onchange="saveCfnatSettings()" style="width:80px;" type="number">
+                <div class="setting-row">
+                    <div class="path-input">
+                        <label>TLS端口:</label>
+                        <input id="cfnat-port" max="65535" min="1" onchange="saveCfnatSettings()" style="width:80px;" type="number">
+                    </div>
+                    <div class="path-input">
+                        <label>HTTP端口:</label>
+                        <input id="cfnat-http-port" max="65535" min="1" onchange="saveCfnatSettings()" style="width:80px;" type="number">
+                    </div>
+                    <div class="path-input">
+                        <label>日志级别:</label>
+                        <select id="cfnat-log-level" onchange="saveCfnatSettings()" style="width:100px;">
+                            <option value="silent">silent</option>
+                            <option value="error">error</option>
+                            <option value="warn">warn</option>
+                            <option value="info">info</option>
+                            <option value="debug">debug</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="path-input">
-                    <label>有效IP数:</label>
-                    <input id="cfnat-ipnum" min="1" onchange="saveCfnatSettings()" style="width:80px;" type="number">
+                <div class="setting-row">
+                    <div class="path-input">
+                        <label>工作目录:</label>
+                        <input id="cfnat-workdir" onchange="saveCfnatSettings()" placeholder="/mnt/sda3/opt/singbox" style="width:300px;" type="text">
+                    </div>
+                    <div class="checkbox-label">
+                        <span>随机IP:</span>
+                        <input id="cfnat-random" onchange="saveCfnatSettings()" type="checkbox">
+                    </div>
                 </div>
-            </div>
-            <div class="setting-row">
-                <div class="path-input">
-                    <label>延迟阈值(ms):</label>
-                    <input id="cfnat-delay" min="0" onchange="saveCfnatSettings()" style="width:80px;" type="number">
+                <div class="setting-row">
+                    <div class="checkbox-label">
+                        <span>百度前置代理:</span>
+                        <input id="cfnat-baidu-proxy" onchange="saveCfnatSettings()" type="checkbox">
+                    </div>
                 </div>
-                <div class="path-input">
-                    <label>连接尝试:</label>
-                    <input id="cfnat-num" min="1" onchange="saveCfnatSettings()" style="width:80px;" type="number">
-                </div>
-                <div class="path-input">
-                    <label>IP版本:</label>
-                    <select id="cfnat-ips" onchange="saveCfnatSettings()" style="width:60px;">
-                        <option value="4">4</option>
-                        <option value="6">6</option>
-                    </select>
-                </div>
-            </div>
-            <div class="setting-row">
-                <div class="path-input">
-                    <label>TLS端口:</label>
-                    <input id="cfnat-port" max="65535" min="1" onchange="saveCfnatSettings()" style="width:80px;" type="number">
-                </div>
-                <div class="path-input">
-                    <label>HTTP端口:</label>
-                    <input id="cfnat-http-port" max="65535" min="1" onchange="saveCfnatSettings()" style="width:80px;" type="number">
-                </div>
-                <div class="path-input">
-                    <label>日志级别:</label>
-                    <select id="cfnat-log-level" onchange="saveCfnatSettings()" style="width:100px;">
-                        <option value="silent">silent</option>
-                        <option value="error">error</option>
-                        <option value="warn">warn</option>
-                        <option value="info">info</option>
-                        <option value="debug">debug</option>
-                    </select>
-                </div>
-            </div>
-            <div class="setting-row">
-                <div class="path-input">
-                    <label>工作目录:</label>
-                    <input id="cfnat-workdir" onchange="saveCfnatSettings()" placeholder="/mnt/sda3/opt/singbox" style="width:300px;" type="text">
-                </div>
-                <div class="checkbox-label">
-                    <span>随机IP:</span>
-                    <input id="cfnat-random" onchange="saveCfnatSettings()" type="checkbox">
-                </div>
-            </div>
-            <div class="setting-row">
-                <div class="checkbox-label">
-                    <span>百度前置代理:</span>
-                    <!-- 新增 id: cfnat-baidu-proxy -->
-                    <input id="cfnat-baidu-proxy" onchange="saveCfnatSettings()" type="checkbox">
-                </div>
-            </div>
-            <div class="setting-row">
-                <div class="path-input">
-                    <label>运营商分池监听:</label>
-                    <!-- 新增 id: cfnat-carrier-listens -->
-                    <input id="cfnat-carrier-listens" onchange="saveCfnatSettings()" placeholder="mobile=127.0.0.1:2346,telecom=127.0.0.1:2347,unicom=127.0.0.1:2348" style="width:490px;" type="text">
+                <div class="setting-row">
+                    <div class="path-input">
+                        <label>运营商分池监听:</label>
+                        <input id="cfnat-carrier-listens" onchange="saveCfnatSettings()" placeholder="mobile=127.0.0.1:2346,telecom=127.0.0.1:2347,unicom=127.0.0.1:2348" style="width:490px;" type="text">
+                    </div>
                 </div>
             </div>
         </div>
@@ -841,44 +827,70 @@
             <button class="cbi-button cbi-button-apply action-btn" onclick="openProxyPoolModal()">查看节点池</button>
         </div>
     </div>
-
+    
     <!-- ==================== 节点组管理 ==================== -->
     <div class="ns-section">
-        <div class="ns-title">节点组管理</div>
-        <button class="cbi-button cbi-button-add" onclick="openGroupModal()">+ 新增节点组</button>
-        <table id="group-table">
-            <thead>
-            <tr>
-                <th width="50">序号</th>
-                <th>组名 (Tag)</th>
-                <th width="100">类型</th>
-                <th>成员</th>
-                <th width="150">操作</th>
-            </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
+        <div class="ns-title collapsible-title" onclick="toggleCollapse('group-content', this)" style="border-bottom: 2px solid var(--ns-primary-dark);">
+            <span>节点组</span>
+            <svg class="collapse-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+        </div>
+        <div class="collapsible-content collapsed" id="group-content" style="max-height: 2000px;">
+            <div style="margin-bottom: 10px; font-size: 13px; color: var(--ns-text-light);">
+                💡 提示：节点组成员可以是具体节点或其他节点组
+            </div>
+            <button class="cbi-button cbi-button-add" onclick="openGroupModal()">+ 新增节点组</button>
+            <table id="group-table">
+                <thead>
+                <tr>
+                    <th width="50">序号</th>
+                    <th>组名 (Tag)</th>
+                    <th width="100">类型</th>
+                    <th>成员</th>
+                    <th width="150">操作</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
     </div>
 
-    <!-- ==================== 分流规则绑定 ==================== -->
+    <!-- ==================== 分流规则 ==================== -->
     <div class="ns-section">
-        <div class="ns-title">分流规则绑定</div>
-        <div style="margin-bottom: 10px; font-size: 13px; color: var(--ns-text-light);">
-            💡 提示：拖动 <span style="color: var(--ns-primary);">≡</span> 手柄可排序规则，同类型同出站的规则会自动合并
+        <div class="ns-title collapsible-title" onclick="toggleCollapse('rule-content', this)" style="border-bottom: 2px solid var(--ns-primary-dark);">
+            <span>分流设置</span>
+            <svg class="collapse-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
         </div>
-        <button class="cbi-button cbi-button-add" onclick="openRuleModal()">+ 新增分流绑定</button>
-        <table id="rule-table">
-            <thead>
-            <tr>
-                <th width="30">#</th>
-                <th width="30"></th>
-                <th>匹配规则条目</th>
-                <th>出站目标</th>
-                <th width="150">操作</th>
-            </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
+        <div class="collapsible-content collapsed" id="rule-content" style="max-height: 2000px;">
+            <div style="margin-bottom: 10px; font-size: 13px; color: var(--ns-text-light);">
+                💡 提示：拖动 <span style="color: var(--ns-primary);">≡</span> 手柄可排序规则，同类型同出站的规则会自动合并
+            </div>
+            <button class="cbi-button cbi-button-add" onclick="openRuleModal()">+ 新增分流</button>
+            <table id="rule-table">
+                <thead>
+                <tr>
+                    <th width="30">#</th>
+                    <th width="30"></th>
+                    <th>匹配规则条目</th>
+                    <th>出站目标</th>
+                    <th width="150">操作</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <!-- 已有分流组列表 -->
+            <div style="margin-top: 15px; padding: 10px; background: var(--ns-bg-secondary); border: 1px solid var(--ns-border); border-radius: 4px;">
+                <div style="font-size: 13px; color: var(--ns-text-light); margin-bottom: 8px;">
+                    💡 已创建分流组（在 Clash API 中切换节点组）
+                </div>
+                <div id="proxy-group-tags" style="display: flex; flex-wrap: wrap; gap: 8px; min-height: 28px; align-items: center;">
+                    <!-- 动态渲染分流组标签 -->
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- ==================== 配置备份 ==================== -->
@@ -903,13 +915,15 @@
     </div>
 </div>
 
-<!-- Modals -->
+<!-- ==================== 弹窗区域 ==================== -->
+
+<!-- 节点组编辑弹窗 -->
 <div class="modal" id="modal-group">
     <div class="modal-content">
         <div class="modal-header"><span>配置节点组</span><span class="close-btn" onclick="closeModal()">&times;</span></div>
         <div class="modal-body">
             <input id="mg-index" type="hidden" value="-1">
-            <label>组名:</label><input id="mg-tag" placeholder="必须非空" style="width: 100%; margin-bottom: 10px;" type="text">
+            <label>组名:</label><input id="mg-tag" placeholder="必须非空，且不能与分流组重名" style="width: 100%; margin-bottom: 10px;" type="text">
             <label>策略:</label><select id="mg-type" style="width: 100%; margin-bottom: 10px;">
             <option value="urltest">urltest</option>
             <option value="selector">selector</option>
@@ -947,11 +961,20 @@
     </div>
 </div>
 
+<!-- 规则编辑弹窗 -->
 <div class="modal" id="modal-rule">
     <div class="modal-content">
         <div class="modal-header"><span>配置规则分流</span><span class="close-btn" onclick="closeModal()">&times;</span></div>
         <div class="modal-body">
             <input id="mr-index" type="hidden" value="-1">
+
+            <label>目标出站 (分流组):</label>
+            <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                <input id="mr-outbound-input" placeholder="输入分流组名，新名称将自动创建" style="flex: 1; height: 28px; box-sizing: border-box;" type="text" oninput="state.selectedOutbound = this.value;">
+            </div>
+            <div class="field-hint">💡 新分流组将自动包含全部节点组</div>
+
+            <hr>
 
             <label>规则类型:</label>
             <select id="rule-type" onchange="onRuleTypeChange()" style="width: 100%; margin-bottom: 10px;">
@@ -1000,10 +1023,6 @@
                 <div class="field-hint">支持单个关键词或多个关键词，匹配包含该关键词的域名，如: google 或 google,youtube,netflix</div>
             </div>
 
-            <hr>
-            <label>目标出站:</label>
-            <input class="search-bar" id="mr-outs-search" oninput="filterTags('mr-outs', this.value)" placeholder="搜索组,节点..." type="text">
-            <div class="tag-grid" id="mr-outs"></div>
         </div>
         <div class="modal-footer">
             <button class="cbi-button cbi-button-apply" onclick="saveRule()">保存</button>
@@ -1012,6 +1031,7 @@
     </div>
 </div>
 
+<!-- 节点池弹窗 -->
 <div class="modal" id="modal-proxy-pool">
     <div class="modal-content">
         <div class="modal-header"><span>节点池管理</span><span class="close-btn" onclick="closeModal()">&times;</span></div>
@@ -1078,9 +1098,19 @@
     // ==========================================================================
     // 应用状态
     // ==========================================================================
-    var state = {proxyTags: [], configRules: [], groups: [], rulesUI: [], selectedMembers: [], selectedRules: [], selectedOutbound: ""};
+    var state = {
+        proxyTags: [],
+        configRules: [],
+        groups: [],
+        proxyGroups: [],
+        rulesUI: [],
+        selectedMembers: [],
+        selectedRules: [],
+        selectedOutbound: ""
+    };
     var removedProxies = [];
     var countdownInterval = null;
+    var currentEditingGroupTag = "";
 
     function updateNodeManagementLink() {
         var secretInput = document.getElementById("clash-secret");
@@ -1114,9 +1144,15 @@
     async function refreshData() {
         try {
             var results = await Promise.all([
-                fetchApi("proxies_get"), fetchApi("proxy_tags"), fetchApi("config_rules_get"), fetchApi("groups_get"), fetchApi("rules_ui_get"), fetchApi("service_settings_get")
+                fetchApi("proxies_get"),
+                fetchApi("proxy_tags"),
+                fetchApi("config_rules_get"),
+                fetchApi("groups_get"),
+                fetchApi("proxy_groups_get"),
+                fetchApi("rules_ui_get"),
+                fetchApi("service_settings_get")
             ]);
-            var subs = results[0], tagsRes = results[1], rulesRes = results[2], gRes = results[3], rRes = results[4], svcRes = results[5];
+            var subs = results[0], tagsRes = results[1], rulesRes = results[2], gRes = results[3], pgRes = results[4], rRes = results[5], svcRes = results[6];
 
             var c_arr = Array.isArray(subs.clash) ? subs.clash : [];
             var v_arr = Array.isArray(subs.v2ray) ? subs.v2ray : [];
@@ -1125,10 +1161,12 @@
             document.getElementById("v2ray-subs").value = v_arr.join("\n");
             document.getElementById("singbox-nodes").value = sb_nodes;
 
-            state.proxyTags = tagsRes.tags || [];
-            state.configRules = rulesRes.lines || [];
-            state.groups = gRes.groups || [];
-            state.rulesUI = rRes.rules || [];
+            state.proxyTags = Array.isArray(tagsRes.tags) ? tagsRes.tags : [];
+            state.configRules = Array.isArray(rulesRes.lines) ? rulesRes.lines : [];
+            state.groups = Array.isArray(gRes.groups) ? gRes.groups : [];
+            state.proxyGroups = Array.isArray(pgRes.proxy_groups) ? pgRes.proxy_groups : [];
+            state.rulesUI = Array.isArray(rRes.rules) ? rRes.rules : [];
+
             if (svcRes) {
                 document.getElementById("service-enabled").checked = !!svcRes.enabled;
                 document.getElementById("service-delay").value = svcRes.delay || 10;
@@ -1159,81 +1197,103 @@
         }
     }
 
-    function renderTables() {
-        var groupHtml = "";
-        for (var i = 0; i < state.groups.length; i++) {
-            var g = state.groups[i];
-            var matchRuleDisplay = g.match_rule ? '<br><small style="color: var(--ns-text-light);">匹配公式: ' + escapeHtml(g.match_rule) + '</small>' : '';
-            groupHtml += "<tr><td>" + (i + 1) + "</td><td><strong>" + escapeHtml(g.tag) + "</strong>" + matchRuleDisplay + "</td><td><code>" + g.type + "</code></td><td>" + g.members.length + " 节点</td><td><button class=\"cbi-button\" onclick=\"openGroupModal(" + i + ")\">编辑</button> <button class=\"cbi-button cbi-button-reset\" onclick=\"deleteItem('group'," + i + ")\">删除</button></td></tr>";
-        }
-        document.querySelector("#group-table tbody").innerHTML = groupHtml;
-
-        var mergedMap = {};
-        var mergedOrder = [];
-
-        for (var i = 0; i < state.rulesUI.length; i++) {
-            var r = state.rulesUI[i];
-            var ruleType = r.rule_type || "srs";
-            var outbound = r.outbound || "";
-            var mergeKey = ruleType + "|||" + outbound;
-
-            if (!mergedMap[mergeKey]) {
-                mergedMap[mergeKey] = {
-                    ruleType: ruleType,
-                    outbound: outbound,
-                    rules: []
-                };
-                mergedOrder.push(mergeKey);
-            }
-            mergedMap[mergeKey].rules.push(r.rule);
-        }
-
-        var newRulesUI = [];
-        for (var i = 0; i < mergedOrder.length; i++) {
-            var mergeKey = mergedOrder[i];
-            var group = mergedMap[mergeKey];
-            var mergedRule = group.rules.join(",");
-
-            newRulesUI.push({
-                rule: mergedRule,
-                outbound: group.outbound,
-                rule_type: group.ruleType
-            });
-        }
-
-        state.rulesUI = newRulesUI;
-        fetchApi("rules_ui_set", {rules: state.rulesUI});
-
-        var ruleHtml = "";
-        for (var i = 0; i < state.rulesUI.length; i++) {
-            var r = state.rulesUI[i];
-            var ruleType = r.rule_type || "srs";
-            var outbound = r.outbound || "";
-            var ruleValue = r.rule || "";
-
-            var typeLabel = "";
-            if (ruleType === "srs") typeLabel = "\u{1F4E6}";
-            else if (ruleType === "ip") typeLabel = "\u{1F310}";
-            else if (ruleType === "port") typeLabel = "\u{1F50C}";
-            else if (ruleType === "port_range") typeLabel = "\u{1F4CA}";
-            else if (ruleType === "domain_suffix") typeLabel = "\u{1F4CB}";
-            else if (ruleType === "domain_keyword") typeLabel = "\u{1F50D}";
-            else typeLabel = "\u{1F4CB}";
-
-            var ruleDisplay = formatRuleDisplay(ruleType, ruleValue);
-
-            ruleHtml += "<tr draggable=\"true\" data-index=\"" + i + "\">" +
-                "<td>" + (i + 1) + "</td>" +
-                "<td><span class=\"drag-handle\">\u2630</span></td>" +
-                "<td><code>" + typeLabel + " " + escapeHtml(ruleDisplay) + "</code></td>" +
-                "<td>\u279C " + (outbound ? escapeHtml(outbound) : '<span style="color:red">(空)</span>') + "</td>" +
-                "<td><button class=\"cbi-button\" onclick=\"openRuleModal(" + i + ")\">编辑</button> <button class=\"cbi-button cbi-button-reset\" onclick=\"deleteItem('rule'," + i + ")\">删除</button></td>" +
-                "</tr>";
-        }
-        document.querySelector("#rule-table tbody").innerHTML = ruleHtml;
-
-        initDragSort();
+function renderTables() {
+    if (!Array.isArray(state.proxyGroups)) {
+        state.proxyGroups = [];
     }
+
+    // 渲染分流组标签
+    var proxyGroupTagsHtml = "";
+    for (var i = 0; i < state.proxyGroups.length; i++) {
+        var pg = state.proxyGroups[i];
+        var srsDisplay = pg.srs ? " | SRS: " + escapeHtml(pg.srs) : "";
+        proxyGroupTagsHtml += "<div class=\"tag-btn\" style=\"cursor: default; display: inline-flex; align-items: center; gap: 6px;\">" +
+            "<span><strong>" + escapeHtml(pg.tag) + "</strong> <span style=\"opacity: 0.7;\">(" + pg.type + ")</span>" + srsDisplay + "</span>" +
+            "<span style=\"cursor: pointer; color: #dc3545; font-size: 16px; line-height: 1;\" onclick=\"event.stopPropagation(); deleteItem('proxy_group'," + i + ")\" title=\"删除\">&times;</span>" +
+            "</div>";
+    }
+    if (state.proxyGroups.length === 0) {
+        proxyGroupTagsHtml = "<span style=\"color: var(--ns-text-light); font-size: 12px;\">暂无分流组，在规则编辑中输入新分流组名即可自动创建</span>";
+    }
+    document.getElementById("proxy-group-tags").innerHTML = proxyGroupTagsHtml;
+
+    // 渲染节点组表格
+    var groupHtml = "";
+    for (var i = 0; i < state.groups.length; i++) {
+        var g = state.groups[i];
+        var matchRuleDisplay = g.match_rule ? '<br><small style="color: var(--ns-text-light);">匹配公式: ' + escapeHtml(g.match_rule) + '</small>' : '';
+        groupHtml += "<tr><td>" + (i + 1) + "</td><td><strong>" + escapeHtml(g.tag) + "</strong>" + matchRuleDisplay + "</td><td><code>" + g.type + "</code></td><td>" + g.members.length + " 节点</td><td><button class=\"cbi-button\" onclick=\"openGroupModal(" + i + ")\">编辑</button> <button class=\"cbi-button cbi-button-reset\" onclick=\"deleteItem('group'," + i + ")\">删除</button></td></tr>";
+    }
+    document.querySelector("#group-table tbody").innerHTML = groupHtml;
+
+    // 合并规则
+    var mergedMap = {};
+    var mergedOrder = [];
+
+    for (var i = 0; i < state.rulesUI.length; i++) {
+        var r = state.rulesUI[i];
+        var ruleType = r.rule_type || "srs";
+        var outbound = r.outbound || "";
+        var mergeKey = ruleType + "|||" + outbound;
+
+        if (!mergedMap[mergeKey]) {
+            mergedMap[mergeKey] = {
+                ruleType: ruleType,
+                outbound: outbound,
+                rules: []
+            };
+            mergedOrder.push(mergeKey);
+        }
+        mergedMap[mergeKey].rules.push(r.rule);
+    }
+
+    var newRulesUI = [];
+    for (var i = 0; i < mergedOrder.length; i++) {
+        var mergeKey = mergedOrder[i];
+        var group = mergedMap[mergeKey];
+        var mergedRule = group.rules.join(",");
+
+        newRulesUI.push({
+            rule: mergedRule,
+            outbound: group.outbound,
+            rule_type: group.ruleType
+        });
+    }
+
+    state.rulesUI = newRulesUI;
+    fetchApi("rules_ui_set", {rules: state.rulesUI});
+
+    // 渲染规则表格
+    var ruleHtml = "";
+    for (var i = 0; i < state.rulesUI.length; i++) {
+        var r = state.rulesUI[i];
+        var ruleType = r.rule_type || "srs";
+        var outbound = r.outbound || "";
+        var ruleValue = r.rule || "";
+
+        var typeLabel = "";
+        if (ruleType === "srs") typeLabel = "\u{1F4E6}";
+        else if (ruleType === "ip") typeLabel = "\u{1F310}";
+        else if (ruleType === "port") typeLabel = "\u{1F50C}";
+        else if (ruleType === "port_range") typeLabel = "\u{1F4CA}";
+        else if (ruleType === "domain_suffix") typeLabel = "\u{1F4CB}";
+        else if (ruleType === "domain_keyword") typeLabel = "\u{1F50D}";
+        else typeLabel = "\u{1F4CB}";
+
+        var ruleDisplay = formatRuleDisplay(ruleType, ruleValue);
+
+        ruleHtml += "<tr draggable=\"true\" data-index=\"" + i + "\">" +
+            "<td>" + (i + 1) + "</td>" +
+            "<td><span class=\"drag-handle\">\u2630</span></td>" +
+            "<td><code>" + typeLabel + " " + escapeHtml(ruleDisplay) + "</code></td>" +
+            "<td>\u279C " + (outbound ? escapeHtml(outbound) : '<span style="color:red">(空)</span>') + "</td>" +
+            "<td><button class=\"cbi-button\" onclick=\"openRuleModal(" + i + ")\">编辑</button> <button class=\"cbi-button cbi-button-reset\" onclick=\"deleteItem('rule'," + i + ")\">删除</button></td>" +
+            "</tr>";
+    }
+    document.querySelector("#rule-table tbody").innerHTML = ruleHtml;
+
+    initDragSort();
+}
 
     function formatRuleDisplay(ruleType, ruleValue) {
         var items = ruleValue.split(",").map(function (s) {
@@ -1293,6 +1353,30 @@
         saveServiceSettings();
     }
 
+    // ==========================================================================
+    // 重名检测
+    // ==========================================================================
+    function checkDuplicateName(name, excludeIndex, type) {
+        var allNames = [];
+
+        for (var i = 0; i < state.proxyGroups.length; i++) {
+            if (type !== 'proxy_group' || i !== excludeIndex) {
+                allNames.push(state.proxyGroups[i].tag);
+            }
+        }
+
+        for (var i = 0; i < state.groups.length; i++) {
+            if (type !== 'group' || i !== excludeIndex) {
+                allNames.push(state.groups[i].tag);
+            }
+        }
+
+        return allNames.indexOf(name) !== -1;
+    }
+
+    // ==========================================================================
+    // 节点组管理
+    // ==========================================================================
     function openGroupModal(idx) {
         if (idx === undefined) idx = -1;
         document.getElementById("mg-index").value = idx;
@@ -1302,6 +1386,7 @@
         document.getElementById("mg-advanced-expr").value = g.match_rule || "";
         state.selectedMembers = Array.isArray(g.members) ? g.members.slice() : [];
         document.getElementById("mg-tags-search").value = "";
+        currentEditingGroupTag = g.tag || "";
         renderGroupTags();
         document.getElementById("modal-group").style.display = "block";
         var selectAllBtn = document.getElementById("mg-select-all-btn");
@@ -1316,11 +1401,34 @@
             return;
         }
         var kw = document.getElementById("mg-tags-search").value;
-        var html = "";
+        var allSelectableTags = [];
+
         for (var i = 0; i < state.proxyTags.length; i++) {
-            var t = state.proxyTags[i];
+            allSelectableTags.push(state.proxyTags[i]);
+        }
+
+        for (var i = 0; i < state.groups.length; i++) {
+            var groupTag = state.groups[i].tag;
+            if (groupTag !== currentEditingGroupTag) {
+                if (allSelectableTags.indexOf(groupTag) === -1) {
+                    allSelectableTags.push(groupTag);
+                }
+            }
+        }
+
+        var html = "";
+        for (var i = 0; i < allSelectableTags.length; i++) {
+            var t = allSelectableTags[i];
             var activeClass = state.selectedMembers.indexOf(t) > -1 ? "active" : "";
-            html += "<div class=\"tag-btn " + activeClass + "\" onclick=\"toggleMultiSelect(state.selectedMembers, '" + t.replace(/'/g, "\\'") + "', 'mg-tags', renderGroupTags)\">" + escapeHtml(t) + "</div>";
+            var isGroup = false;
+            for (var j = 0; j < state.groups.length; j++) {
+                if (state.groups[j].tag === t && t !== currentEditingGroupTag) {
+                    isGroup = true;
+                    break;
+                }
+            }
+            var groupLabel = isGroup ? " [组]" : "";
+            html += "<div class=\"tag-btn " + activeClass + "\" onclick=\"toggleMultiSelect(state.selectedMembers, '" + t.replace(/'/g, "\\'") + "', 'mg-tags', renderGroupTags)\">" + escapeHtml(t) + groupLabel + "</div>";
         }
         document.getElementById("mg-tags").innerHTML = html;
         if (kw) filterTags('mg-tags', kw);
@@ -1333,25 +1441,78 @@
         renderFn();
     }
 
-    async function saveGroup() {
-        var i = parseInt(document.getElementById("mg-index").value);
-        var matchRule = document.getElementById("mg-advanced-expr").value.trim();
-        var g = {
-            tag: document.getElementById("mg-tag").value.trim(),
-            type: document.getElementById("mg-type").value,
-            members: state.selectedMembers
-        };
-        if (matchRule !== "") {
-            g.match_rule = matchRule;
-        }
-        if (!g.tag) return alert("组名不能为空");
-        if (i > -1) state.groups[i] = g;
-        else state.groups.push(g);
-        await fetchApi("groups_set", {groups: state.groups});
-        closeModal();
-        refreshData();
+async function saveGroup() {
+    var i = parseInt(document.getElementById("mg-index").value);
+    var matchRule = document.getElementById("mg-advanced-expr").value.trim();
+    var currentTag = document.getElementById("mg-tag").value.trim();
+
+    if (!currentTag) return alert("组名不能为空");
+    if (checkDuplicateName(currentTag, i, 'group')) return alert("组名已存在，分流组和节点组不能重名");
+
+    var filteredMembers = state.selectedMembers.filter(function (member) {
+        return member !== currentTag;
+    });
+
+    // 获取旧组名（用于关联更新）
+    var oldTag = (i > -1) ? state.groups[i].tag : "";
+
+    var g = {
+        tag: currentTag,
+        type: document.getElementById("mg-type").value,
+        members: filteredMembers
+    };
+    if (matchRule !== "") {
+        g.match_rule = matchRule;
     }
 
+    if (i > -1) {
+        state.groups[i] = g;
+
+        // 节点组改名时，更新所有关联引用
+        if (oldTag && oldTag !== currentTag) {
+            // 1. 更新其他节点组 members 中引用旧名称的
+            for (var j = 0; j < state.groups.length; j++) {
+                if (j !== i) {
+                    var membersChanged = false;
+                    for (var k = 0; k < state.groups[j].members.length; k++) {
+                        if (state.groups[j].members[k] === oldTag) {
+                            state.groups[j].members[k] = currentTag;
+                            membersChanged = true;
+                        }
+                    }
+                    // 如果使用了高级匹配，也更新匹配表达式中的引用
+                    if (membersChanged && state.groups[j].match_rule) {
+                        var regex = new RegExp('\\b' + oldTag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'g');
+                        state.groups[j].match_rule = state.groups[j].match_rule.replace(regex, currentTag);
+                    }
+                }
+            }
+
+            // 2. 更新 rulesUI 中 outbound 引用旧名称的（虽然 outbound 通常指向分流组，但以防万一）
+            for (var j = 0; j < state.rulesUI.length; j++) {
+                if (state.rulesUI[j].outbound === oldTag) {
+                    state.rulesUI[j].outbound = currentTag;
+                }
+            }
+
+            // 保存更新后的 groups 和 rules
+            await fetchApi("groups_set", {groups: state.groups});
+            await fetchApi("rules_ui_set", {rules: state.rulesUI});
+
+            alert("节点组名已更新，关联引用已同步修改。请点击\"更新配置\"重新生成配置文件。");
+        }
+    } else {
+        state.groups.push(g);
+    }
+
+    await fetchApi("groups_set", {groups: state.groups});
+    closeModal();
+    refreshData();
+}
+
+    // ==========================================================================
+    // 分流规则绑定
+    // ==========================================================================
     function openRuleModal(idx) {
         if (idx === undefined) idx = -1;
         document.getElementById("mr-index").value = idx;
@@ -1387,10 +1548,10 @@
             return s.trim();
         }) : [];
         state.selectedOutbound = r.outbound;
+        document.getElementById("mr-outbound-input").value = r.outbound;
 
         onRuleTypeChange();
         renderRuleSrs();
-        renderRuleOuts();
         document.getElementById("modal-rule").style.display = "block";
     }
 
@@ -1434,120 +1595,200 @@
     }
 
     function renderRuleOuts() {
-        var kw = document.getElementById("mr-outs-search").value;
         var outs = ["direct", "reject"];
-        for (var i = 0; i < state.groups.length; i++) outs.push(state.groups[i].tag);
-        for (var i = 0; i < state.proxyTags.length; i++) outs.push(state.proxyTags[i]);
+        for (var i = 0; i < state.proxyGroups.length; i++) {
+            outs.push(state.proxyGroups[i].tag);
+        }
 
         var html = "";
         for (var i = 0; i < outs.length; i++) {
             var o = outs[i];
             var activeClass = state.selectedOutbound === o ? "active" : "";
-            html += "<div class=\"tag-btn " + activeClass + "\" onclick=\"state.selectedOutbound='" + o.replace(/'/g, "\\'") + "';renderRuleOuts()\">" + escapeHtml(o) + "</div>";
+            var label = "";
+            if (o === "direct") {
+                label = " [直连]";
+            } else if (o === "reject") {
+                label = " [拒绝]";
+            } else {
+                label = " [分流组]";
+            }
+            html += "<div class=\"tag-btn " + activeClass + "\" onclick=\"document.getElementById('mr-outbound-input').value='" + o.replace(/'/g, "\\'") + "';state.selectedOutbound='" + o.replace(/'/g, "\\'") + "';renderRuleOuts()\">" + escapeHtml(o) + label + "</div>";
         }
         document.getElementById("mr-outs").innerHTML = html;
-        if (kw) filterTags('mr-outs', kw);
     }
 
-    async function saveRule() {
-        var i = parseInt(document.getElementById("mr-index").value);
-        var ruleType = document.getElementById("rule-type").value;
-        var ruleValue = "";
+async function saveRule() {
+    var i = parseInt(document.getElementById("mr-index").value);
+    var ruleType = document.getElementById("rule-type").value;
+    var ruleValue = "";
 
-        switch (ruleType) {
-            case "srs":
-                ruleValue = state.selectedRules.join(",");
-                if (!ruleValue) return alert("请选择 SRS 规则");
-                break;
-            case "ip":
-                ruleValue = document.getElementById("rule-ip-value").value.trim();
-                if (!ruleValue) return alert("请输入 IP 地址");
-                var ips = ruleValue.split(/[ ,]+/).filter(function (ip) {
-                    return ip.trim();
-                });
-                for (var ipIdx = 0; ipIdx < ips.length; ipIdx++) {
-                    var ip = ips[ipIdx].trim();
-                    if (!ip.match(/^\d+\.\d+\.\d+\.\d+(\/\d+)?$/) && !ip.match(/^[a-fA-F0-9:]+(\/\d+)?$/)) {
-                        return alert("IP 地址格式错误: " + ip + "，应为 IPv4、IPv6 或 CIDR 格式");
-                    }
+    switch (ruleType) {
+        case "srs":
+            ruleValue = state.selectedRules.join(",");
+            if (!ruleValue) return alert("请选择 SRS 规则");
+            break;
+        case "ip":
+            ruleValue = document.getElementById("rule-ip-value").value.trim();
+            if (!ruleValue) return alert("请输入 IP 地址");
+            var ips = ruleValue.split(/[ ,]+/).filter(function (ip) {
+                return ip.trim();
+            });
+            for (var ipIdx = 0; ipIdx < ips.length; ipIdx++) {
+                var ip = ips[ipIdx].trim();
+                if (!ip.match(/^\d+\.\d+\.\d+\.\d+(\/\d+)?$/) && !ip.match(/^[a-fA-F0-9:]+(\/\d+)?$/)) {
+                    return alert("IP 地址格式错误: " + ip + "，应为 IPv4、IPv6 或 CIDR 格式");
                 }
-                ruleValue = ips.join(",");
-                break;
-            case "port":
-                ruleValue = document.getElementById("rule-port-value").value.trim();
-                if (!ruleValue) return alert("请输入端口号");
-                var ports = ruleValue.split(/[ ,]+/).filter(function (p) {
-                    return p.trim();
-                });
-                for (var pIdx = 0; pIdx < ports.length; pIdx++) {
-                    var p = ports[pIdx];
-                    if (!p.match(/^\d+$/)) return alert("端口格式错误: " + p + "，必须是数字");
-                    var portNum = parseInt(p);
-                    if (portNum < 1 || portNum > 65535) return alert("端口范围错误: " + p + "，必须在1-65535之间");
-                }
-                ruleValue = ports.join(",");
-                break;
-            case "port_range":
-                ruleValue = document.getElementById("rule-port-range-value").value.trim();
-                if (!ruleValue) return alert("请输入端口范围");
-                var ranges = ruleValue.split(/[ ,]+/).filter(function (r) {
-                    return r.trim();
-                });
-                for (var rIdx = 0; rIdx < ranges.length; rIdx++) {
-                    var rg = ranges[rIdx];
-                    if (!rg.match(/^\d+-\d+$/)) return alert("端口范围格式错误: " + rg + "，应为: 1000-2000");
-                    var parts = rg.split('-');
-                    var start = parseInt(parts[0]);
-                    var end = parseInt(parts[1]);
-                    if (start < 1 || start > 65535 || end < 1 || end > 65535 || start >= end) return alert("端口范围无效: " + rg + "，起始必须小于结束，且都在1-65535之间");
-                }
-                ruleValue = ranges.join(",");
-                break;
-            case "domain_suffix":
-                ruleValue = document.getElementById("rule-domain-suffix-value").value.trim();
-                if (!ruleValue) return alert("请输入域名后缀");
-                var domains = ruleValue.split(/[ ,]+/).filter(function (d) {
-                    return d.trim();
-                });
-                var cleanedDomains = [];
-                for (var dIdx = 0; dIdx < domains.length; dIdx++) {
-                    var d = domains[dIdx].trim();
-                    d = d.replace(/^https?:\/\//, '');
-                    d = d.split('/')[0];
-                    if (d.startsWith(".")) d = d.substring(1);
-                    if (d.endsWith(".")) d = d.substring(0, d.length - 1);
-                    cleanedDomains.push(d);
-                }
-                ruleValue = cleanedDomains.join(",");
-                break;
+            }
+            ruleValue = ips.join(",");
+            break;
+        case "port":
+            ruleValue = document.getElementById("rule-port-value").value.trim();
+            if (!ruleValue) return alert("请输入端口号");
+            var ports = ruleValue.split(/[ ,]+/).filter(function (p) {
+                return p.trim();
+            });
+            for (var pIdx = 0; pIdx < ports.length; pIdx++) {
+                var p = ports[pIdx];
+                if (!p.match(/^\d+$/)) return alert("端口格式错误: " + p + "，必须是数字");
+                var portNum = parseInt(p);
+                if (portNum < 1 || portNum > 65535) return alert("端口范围错误: " + p + "，必须在1-65535之间");
+            }
+            ruleValue = ports.join(",");
+            break;
+        case "port_range":
+            ruleValue = document.getElementById("rule-port-range-value").value.trim();
+            if (!ruleValue) return alert("请输入端口范围");
+            var ranges = ruleValue.split(/[ ,]+/).filter(function (r) {
+                return r.trim();
+            });
+            for (var rIdx = 0; rIdx < ranges.length; rIdx++) {
+                var rg = ranges[rIdx];
+                if (!rg.match(/^\d+-\d+$/)) return alert("端口范围格式错误: " + rg + "，应为: 1000-2000");
+                var parts = rg.split('-');
+                var start = parseInt(parts[0]);
+                var end = parseInt(parts[1]);
+                if (start < 1 || start > 65535 || end < 1 || end > 65535 || start >= end) return alert("端口范围无效: " + rg + "，起始必须小于结束，且都在1-65535之间");
+            }
+            ruleValue = ranges.join(",");
+            break;
+        case "domain_suffix":
+            ruleValue = document.getElementById("rule-domain-suffix-value").value.trim();
+            if (!ruleValue) return alert("请输入域名后缀");
+            var domains = ruleValue.split(/[ ,]+/).filter(function (d) {
+                return d.trim();
+            });
+            var cleanedDomains = [];
+            for (var dIdx = 0; dIdx < domains.length; dIdx++) {
+                var d = domains[dIdx].trim();
+                d = d.replace(/^https?:\/\//, '');
+                d = d.split('/')[0];
+                if (d.startsWith(".")) d = d.substring(1);
+                if (d.endsWith(".")) d = d.substring(0, d.length - 1);
+                cleanedDomains.push(d);
+            }
+            ruleValue = cleanedDomains.join(",");
+            break;
 
-            case "domain_keyword":
-                ruleValue = document.getElementById("rule-domain-keyword-value").value.trim();
-                if (!ruleValue) return alert("请输入域名关键词");
-                var keywords = ruleValue.split(/[ ,]+/).filter(function (k) {
-                    return k.trim();
-                });
-                if (keywords.length === 0) return alert("请输入至少一个关键词");
-                var cleanedKeywords = [];
-                for (var kIdx = 0; kIdx < keywords.length; kIdx++) {
-                    var k = keywords[kIdx].trim();
-                    k = k.replace(/["']/g, '');
-                    if (k) cleanedKeywords.push(k);
-                }
-                ruleValue = cleanedKeywords.join(",");
+        case "domain_keyword":
+            ruleValue = document.getElementById("rule-domain-keyword-value").value.trim();
+            if (!ruleValue) return alert("请输入域名关键词");
+            var keywords = ruleValue.split(/[ ,]+/).filter(function (k) {
+                return k.trim();
+            });
+            if (keywords.length === 0) return alert("请输入至少一个关键词");
+            var cleanedKeywords = [];
+            for (var kIdx = 0; kIdx < keywords.length; kIdx++) {
+                var k = keywords[kIdx].trim();
+                k = k.replace(/["']/g, '');
+                if (k) cleanedKeywords.push(k);
+            }
+            ruleValue = cleanedKeywords.join(",");
+            break;
+    }
+
+    var outbound = document.getElementById("mr-outbound-input").value.trim();
+    if (!outbound) return alert("请输入出站目标");
+
+    // 获取旧规则（如果是编辑模式）
+    var oldOutbound = (i > -1) ? state.rulesUI[i].outbound : "";
+
+    // 确保 proxyGroups 是数组
+    if (!Array.isArray(state.proxyGroups)) {
+        state.proxyGroups = [];
+    }
+
+    // 自动创建不存在的分流组
+    if (outbound !== "direct" && outbound !== "reject") {
+        // 检查是否与节点组重名
+        for (var j = 0; j < state.groups.length; j++) {
+            if (state.groups[j].tag === outbound) {
+                return alert("分流组名不能与节点组名重复: " + outbound);
+            }
+        }
+        
+        var exists = false;
+        for (var j = 0; j < state.proxyGroups.length; j++) {
+            if (state.proxyGroups[j].tag === outbound) {
+                exists = true;
                 break;
+            }
+        }
+        if (!exists) {
+            state.proxyGroups.push({
+                tag: outbound,
+                type: "selector",
+                srs: ""
+            });
         }
 
-        if (!state.selectedOutbound) return alert("请选择出站目标");
+        // 如果修改了出站目标名称，检查旧分流组是否还有其他规则引用
+        if (oldOutbound && oldOutbound !== outbound && oldOutbound !== "direct" && oldOutbound !== "reject") {
+            var oldUsed = false;
+            for (var j = 0; j < state.rulesUI.length; j++) {
+                if (j !== i && state.rulesUI[j].outbound === oldOutbound) {
+                    oldUsed = true;
+                    break;
+                }
+            }
+            if (!oldUsed) {
+                for (var j = state.proxyGroups.length - 1; j >= 0; j--) {
+                    if (state.proxyGroups[j].tag === oldOutbound) {
+                        state.proxyGroups.splice(j, 1);
+                        break;
+                    }
+                }
+            }
+        }
 
-        var r = {rule: ruleValue, outbound: state.selectedOutbound, rule_type: ruleType};
-        if (i > -1) state.rulesUI[i] = r;
-        else state.rulesUI.push(r);
-
-        await fetchApi("rules_ui_set", {rules: state.rulesUI});
-        closeModal();
-        refreshData();
+        await fetchApi("proxy_groups_set", {proxy_groups: state.proxyGroups});
+    } else if (oldOutbound && oldOutbound !== "direct" && oldOutbound !== "reject") {
+        // 如果从分流组改为 direct/reject，检查旧分流组是否还有其他规则引用
+        var oldUsed = false;
+        for (var j = 0; j < state.rulesUI.length; j++) {
+            if (j !== i && state.rulesUI[j].outbound === oldOutbound) {
+                oldUsed = true;
+                break;
+            }
+        }
+        if (!oldUsed) {
+            for (var j = state.proxyGroups.length - 1; j >= 0; j--) {
+                if (state.proxyGroups[j].tag === oldOutbound) {
+                    state.proxyGroups.splice(j, 1);
+                    break;
+                }
+            }
+            await fetchApi("proxy_groups_set", {proxy_groups: state.proxyGroups});
+        }
     }
+
+    var r = {rule: ruleValue, outbound: outbound, rule_type: ruleType};
+    if (i > -1) state.rulesUI[i] = r;
+    else state.rulesUI.push(r);
+
+    await fetchApi("rules_ui_set", {rules: state.rulesUI});
+    closeModal();
+    refreshData();
+}
 
     function closeModal() {
         var modals = document.querySelectorAll(".modal");
@@ -1938,17 +2179,31 @@
         closeModal();
     }
 
-    async function deleteItem(type, i) {
-        if (!confirm("确定删除?")) return;
-        if (type === 'group') {
-            state.groups.splice(i, 1);
-            await fetchApi("groups_set", {groups: state.groups});
-        } else {
-            state.rulesUI.splice(i, 1);
-            await fetchApi("rules_ui_set", {rules: state.rulesUI});
+async function deleteItem(type, i) {
+    if (!confirm("确定删除?")) return;
+    if (type === 'proxy_group') {
+        if (!Array.isArray(state.proxyGroups)) state.proxyGroups = [];
+        var deletedTag = state.proxyGroups[i].tag;
+        state.proxyGroups.splice(i, 1);
+        
+        // 清理 rules 中引用该分流组的规则
+        for (var j = state.rulesUI.length - 1; j >= 0; j--) {
+            if (state.rulesUI[j].outbound === deletedTag) {
+                state.rulesUI.splice(j, 1);
+            }
         }
-        renderTables();
+        
+        await fetchApi("proxy_groups_set", {proxy_groups: state.proxyGroups});
+        await fetchApi("rules_ui_set", {rules: state.rulesUI});
+    } else if (type === 'group') {
+        state.groups.splice(i, 1);
+        await fetchApi("groups_set", {groups: state.groups});
+    } else {
+        state.rulesUI.splice(i, 1);
+        await fetchApi("rules_ui_set", {rules: state.rulesUI});
     }
+    renderTables();
+}
 
     // ==========================================================================
     // 拖动排序功能
@@ -2310,7 +2565,6 @@
             });
         }
 
-        // 监听 radio 变化并保存
         radios.forEach(function (radio) {
             radio.addEventListener('change', function () {
                 saveServiceSettings();
