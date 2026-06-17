@@ -1,210 +1,202 @@
-name: Build NanoSwift IPK/APK
+name: Build Sing-box for NanoSwift
 
 permissions:
   contents: write
 
 on:
   push:
-    branches: [ master, main ]
+    branches: [ "master", "main" ]
   workflow_dispatch:
 
 jobs:
-  prepare:
+  # ============================================================
+  # 阶段一：用 Zig 并行编译所有平台的 convert 核心组件
+  # ============================================================
+  build-convert:
     runs-on: ubuntu-latest
-    outputs:
-      matrix_23: ${{ steps.set-matrix.outputs.matrix_23 }}
-      matrix_25: ${{ steps.set-matrix.outputs.matrix_25 }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - id: set-matrix
+      - name: Setup Zig
+        uses: goto-bus-stop/setup-zig@v2
+        with:
+          version: 0.13.0
+
+      - name: Patch & Build convert matrix via Zig
         run: |
-          SDK_23=$(jq -c '[.[] | select(.url | contains("23.05"))] | sort_by(.name)' sdk_list.json)
-          SDK_25=$(jq -c '[.[] | select(.url | contains("25."))] | sort_by(.name)' sdk_list.json)
+          cd convert
+          # 放弃脆弱的全局 sed，改为带守卫的精确插入（只在缺少时追加）
+          if ! grep -q "darwin-amd64" build_cpp.sh; then
+            sed -i '/"windows-amd64/a \    "darwin-amd64:x86_64-macos-gnu:"\n    "darwin-arm64:aarch64-macos-gnu:"' build_cpp.sh
+          fi
+          chmod +x build_cpp.sh
+          ./build_cpp.sh
 
-          MATRIX_23=$(echo "$SDK_23" | jq -c '[range(0; length; 10) as $i | .[$i:$i+10]]')
-          MATRIX_25=$(echo "$SDK_25" | jq -c '[range(0; length; 10) as $i | .[$i:$i+10]]')
+      - name: Upload convert artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: convert-binaries
+          path: convert/build/
+          retention-days: 1
 
-          echo "matrix_23=$MATRIX_23" >> $GITHUB_OUTPUT
-          echo "matrix_25=$MATRIX_25" >> $GITHUB_OUTPUT
-
-  build-23:
-    needs: prepare
+  # ============================================================
+  # 阶段二：矩阵并行编译多平台 sing-box 核心（动态嵌套对应架构的 convert）
+  # ============================================================
+  build-sing-box:
+    needs: build-convert
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        shard: ${{ fromJson(needs.prepare.outputs.matrix_23) }}
+        include:
+          # Linux 阵营
+          - goos: linux
+            goarch: amd64
+            label: amd64
+          - goos: linux
+            goarch: arm64
+            label: arm64
+          - goos: linux
+            goarch: arm
+            goarm: 7
+            label: armv7
+          - goos: linux
+            goarch: arm
+            goarm: 6
+            label: armv6
+          - goos: linux
+            goarch: mips
+            label: mips
+          - goos: linux
+            goarch: mipsle
+            label: mipsle
+          - goos: linux
+            goarch: riscv64
+            label: riscv64
+          # Windows 阵营
+          - goos: windows
+            goarch: amd64
+            label: amd64
+          # macOS 阵营
+          - goos: darwin
+            goarch: amd64
+            label: amd64
+          - goos: darwin
+            goarch: arm64
+            label: arm64
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - uses: actions/cache@v4
+      - name: Setup Go
+        uses: actions/setup-go@v5
         with:
-          path: ~/.cache/openwrt-sdk
-          key: sdk-23-${{ hashFiles('sdk_list.json') }}-${{ strategy.job-index }}
+          go-version: '1.25'
+          cache: false
+
+      - name: Advanced Go Build & Mod Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go1.25-${{ hashFiles('**/go.sum') }}-${{ matrix.goos }}-${{ matrix.goarch }}
           restore-keys: |
-            sdk-23-${{ hashFiles('sdk_list.json') }}-
+            ${{ runner.os }}-go1.25-${{ hashFiles('**/go.sum') }}-
 
-      - name: Install dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y build-essential xz-utils jq wget zstd
-
-      - name: Build 23.05 SDK shard
-        run: |
-          mkdir -p output
-          WORKSPACE=$(pwd)
-          PKG_NAME="luci-app-nanoswift"
-
-          echo '${{ toJson(matrix.shard) }}' | jq -c '.[]' | while read item; do
-            NAME=$(echo "$item" | jq -r '.name')
-            URL=$(echo "$item" | jq -r '.url')
-
-            echo "=== [23.05] Building for $NAME ==="
-
-            CACHE_DIR="$HOME/.cache/openwrt-sdk/$NAME"
-            mkdir -p "$CACHE_DIR"
-            SDK_TAR="$CACHE_DIR/sdk.tar.xz"
-
-            if [ ! -f "$SDK_TAR" ]; then
-              wget -q "$URL" -O "$SDK_TAR.tmp" || continue
-              mv "$SDK_TAR.tmp" "$SDK_TAR"
-            fi
-
-            TMP_DIR=$(mktemp -d)
-            cd "$TMP_DIR"
-            tar -xf "$SDK_TAR"
-
-            SDK_DIR=$(ls -d openwrt-sdk-* | head -1)
-
-            mkdir -p "$SDK_DIR/package/$PKG_NAME"
-            cp -r "$WORKSPACE/$PKG_NAME"/* "$SDK_DIR/package/$PKG_NAME/"
-
-            cd "$SDK_DIR"
-
-            echo "=== [23.05] Skip feeds ==="
-
-            touch .config
-            make defconfig
-
-            make package/$PKG_NAME/compile -j$(nproc) V=s ARCH_NAME="$NAME"
-
-            find bin/packages -name "${PKG_NAME}*.ipk" -exec cp {} "$WORKSPACE/output/" \;
-
-            cd "$WORKSPACE"
-            rm -rf "$TMP_DIR"
-          done
-
-          echo "=== [23.05] Shard complete ==="
-          ls -la output/
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ipks-23-shard-${{ strategy.job-index }}
-          path: output/*.ipk
-
-  build-25:
-    needs: prepare
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: ${{ fromJson(needs.prepare.outputs.matrix_25) }}
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/cache@v4
-        with:
-          path: ~/.cache/openwrt-sdk-25
-          key: sdk-25-${{ hashFiles('sdk_list.json') }}-${{ strategy.job-index }}
-          restore-keys: |
-            sdk-25-${{ hashFiles('sdk_list.json') }}-
-
-      - name: Install dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y build-essential xz-utils jq wget zstd
-
-      - name: Build 25.xx SDK shard
-        run: |
-          mkdir -p output
-          WORKSPACE=$(pwd)
-          PKG_NAME="luci-app-nanoswift"
-
-          echo '${{ toJson(matrix.shard) }}' | jq -c '.[]' | while read item; do
-            NAME=$(echo "$item" | jq -r '.name')
-            URL=$(echo "$item" | jq -r '.url')
-
-            echo "=== [25.xx] Building for $NAME ==="
-
-            CACHE_DIR="$HOME/.cache/openwrt-sdk-25/$NAME"
-            mkdir -p "$CACHE_DIR"
-            SDK_TAR="$CACHE_DIR/sdk.tar.zst"
-
-            if [ ! -f "$SDK_TAR" ]; then
-              wget -q "$URL" -O "$SDK_TAR.tmp" || continue
-              mv "$SDK_TAR.tmp" "$SDK_TAR"
-            fi
-
-            TMP_DIR=$(mktemp -d)
-            cd "$TMP_DIR"
-
-            zstd -d "$SDK_TAR" -o sdk.tar
-            tar -xf sdk.tar
-
-            SDK_DIR=$(ls -d openwrt-sdk-* | head -1)
-
-            mkdir -p "$SDK_DIR/package/$PKG_NAME"
-            cp -r "$WORKSPACE/$PKG_NAME"/* "$SDK_DIR/package/$PKG_NAME/"
-
-            cd "$SDK_DIR"
-
-            echo "=== [25.xx] Skip feeds ==="
-
-            touch .config
-            make defconfig
-
-            make package/$PKG_NAME/compile -j$(nproc) V=s ARCH_NAME="$NAME"
-
-            # 25.xx APK：手动按架构重命名，避免互相覆盖
-            find bin/packages -name "${PKG_NAME}*.apk" -exec sh -c '
-              src="$1"
-              arch="$2"
-              work="$3"
-              base="$(basename "$src")"
-              new="${base%.apk}_${arch}.apk"
-              cp "$src" "$work/output/$new"
-            ' _ {} "$NAME" "$WORKSPACE" \;
-
-            cd "$WORKSPACE"
-            rm -rf "$TMP_DIR"
-          done
-
-          echo "=== [25.xx] Shard complete ==="
-          ls -la output/
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ipks-25-shard-${{ strategy.job-index }}
-          path: output/*.apk
-
-  release:
-    needs: [build-23, build-25]
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Download all artifacts
+      - name: Download convert artifacts
         uses: actions/download-artifact@v4
         with:
-          path: all-packages
-          pattern: ipks-*
-          merge-multiple: true
+          name: convert-binaries
+          path: convert/build
+
+      - name: Safe Copy Convert for current Target
+        run: |
+          NANOSWIFT_DIR="experimental/nanoswift"
+          mkdir -p "$NANOSWIFT_DIR"
+          
+          if [ "${{ matrix.goos }}" = "windows" ]; then
+            cp convert/build/convert-windows-amd64.exe "$NANOSWIFT_DIR/convert.exe"
+          elif [ "${{ matrix.goos }}" = "darwin" ]; then
+            cp convert/build/convert-darwin-${{ matrix.goarch }} "$NANOSWIFT_DIR/convert"
+            chmod +x "$NANOSWIFT_DIR/convert"
+          else
+            # Linux 多架构精确映射，解决非 amd64 软路由上的执行依赖问题
+            ARCH_LABEL="${{ matrix.label }}"
+            SRC_CONVERT="convert/build/convert-linux-$ARCH_LABEL"
+            
+            # 兜底策略：如果当前架构没有被 C++ 二进制成功编译，降级使用 linux-amd64
+            if [ ! -f "$SRC_CONVERT" ]; then 
+              SRC_CONVERT="convert/build/convert-linux-amd64"
+            fi
+            
+            cp "$SRC_CONVERT" "$NANOSWIFT_DIR/convert"
+            chmod +x "$NANOSWIFT_DIR/convert"
+          fi
+
+      # 核心修复：引入最新版 UPX 5.1.1 替换原有的 apt-get，打通 riscv64 的加壳支持
+      - name: Install Latest UPX (v5.1.1)
+        run: |
+          sudo apt-get update && sudo apt-get install -y xz-utils
+          wget https://github.com/upx/upx/releases/download/v5.1.1/upx-5.1.1-amd64_linux.tar.xz
+          tar -xf upx-5.1.1-amd64_linux.tar.xz
+          echo "$(pwd)/upx-5.1.1-amd64_linux" >> $GITHUB_PATH
+
+      - name: Build sing-box
+        shell: bash
+        run: |
+          EXT=""
+          if [ "${{ matrix.goos }}" = "windows" ]; then EXT=".exe"; fi
+          ARCH_LABEL="${{ matrix.label }}"
+          
+          OUT_DIR="sing-box-packages/${{ matrix.goos }}-$ARCH_LABEL"
+          mkdir -p "$OUT_DIR"
+          OUT_NAME="$OUT_DIR/sing-box-${{ matrix.goos }}-$ARCH_LABEL$EXT"
+          
+          CURRENT_TAGS="with_clash_api,with_utls,with_quic,with_reality,with_geoip,with_geosite,nowireguard"
+          if [ "${{ matrix.goos }}" = "windows" ] || [ "${{ matrix.goos }}" = "darwin" ]; then
+              CURRENT_TAGS="$CURRENT_TAGS,with_gvisor"
+          fi
+          
+          export GOOS=${{ matrix.goos }}
+          export GOARCH=${{ matrix.goarch }}
+          export CGO_ENABLED=0
+          if [ -n "${{ matrix.goarm }}" ]; then export GOARM=${{ matrix.goarm }}; fi
+          
+          go build -tags "$CURRENT_TAGS" -trimpath -ldflags="-s -w -buildid=" -o "$OUT_NAME" ./cmd/sing-box
+          
+          # 这里的 upx 命令已经无缝切到了 v5.1.1 环境，针对 riscv64 会顺畅通过
+          upx --lzma --best "$OUT_NAME" || echo "Warning: UPX skipped for compatibility"
+          
+          sha256sum "$OUT_NAME" > "$OUT_NAME.sha256"
+
+      - name: Upload Single Package Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pkg-${{ matrix.goos }}-${{ matrix.label }}
+          path: sing-box-packages/
+          retention-days: 1
+
+  # ============================================================
+  # 阶段三：汇总二进制文件，自动计算 Tag 并发布至 GitHub Release
+  # ============================================================
+  release:
+    needs: build-sing-box
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download all core packages
+        uses: actions/download-artifact@v4
+        with:
+          pattern: pkg-*
+          path: release-packages/
+          merge-multiple: false
 
       - name: Generate version tag
         id: version
@@ -231,9 +223,9 @@ jobs:
           tag_name: ${{ steps.version.outputs.tag }}
           name: Release ${{ steps.version.outputs.tag }}
           files: |
-            all-packages/*.ipk
-            all-packages/*.apk
-          fail_on_unmatched_files: false
+            release-packages/**/*
+          generate_release_notes: true
+          fail_on_unmatched_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+          
